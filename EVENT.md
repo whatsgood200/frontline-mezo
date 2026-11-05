@@ -77,11 +77,11 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
 - Done: Phase 1 plan approved (2026-11-05). Spikes S1, S2 and S5 pass on a Mezo testnet fork with the real MUSD contracts (`docs/spikes.md`): proxy-owned troves work (open 526k gas), redemptions hit absorbers and stop before protected loans, held MUSD rescues an absorber after a 3% shock. Foundry project with pinned forge-std and OpenZeppelin 5.1. Next.js 15.5 skeleton with 7 routes, env guard (production refuses mock), `/api/health` checked live against testnet. CI workflow for contracts and web.
-- In progress: deploying the skeleton needs a GitHub repo and a Vercel project (Right's go-ahead and login).
+- In progress: public repo live; Vercel project needs Right to import the repo (root directory `web`).
 - Next: 2 or 3 design directions for the Line screen, then all 7 screens on the mock adapter (Phase 2).
 - Blockers and risks: testnet BTC for live spikes (S3, faucet CAPTCHA). Testnet absorber band under 116% has about 4% price room; keeper plus permissionless protect() required.
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
-- Deployed URLs and contract addresses:
+- Deployed URLs and contract addresses: repo https://github.com/whatsgood200/frontline-mezo (public, `main`). Raw research stays local only (gitignored) and was removed from history before publishing; a local branch `backup/pre-publish` keeps the original history.
 - Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
