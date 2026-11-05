@@ -1,0 +1,18 @@
+node_modules/
+.next/
+dist/
+build/
+out/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.vercel/
+
+# Foundry
+cache/
+broadcast/*/31337/
+# Move / Sui
+build/
+.sui/
