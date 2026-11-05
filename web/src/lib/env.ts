@@ -22,7 +22,7 @@ export const env = {
   adapter: readAdapter(),
   network: readNetwork(),
   commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
-  deployEnv: process.env.VERCEL_ENV ?? "development",
+  deployEnv: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV ?? "development",
 } as const;
 
 // Mock data must never reach the production deployment (AGENTS.md Phase 4 rule).
