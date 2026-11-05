@@ -1,6 +1,6 @@
 # EVENT.md: Frontline (working name) at Mezo Buildathon, Wave 2
 
-Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Idea research: `docs/idea-research.md`. Plan: `docs/plan.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`. Raw research: `docs/research/` (Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror).
+Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Idea research: `docs/idea-research.md`. Plan: `docs/plan.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`. Raw research: `docs/research/` (local only, gitignored: Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror, cloned rival repos).
 
 Folder is `2026-11-mezo-buildathon` until the project has a name; rename it then.
 

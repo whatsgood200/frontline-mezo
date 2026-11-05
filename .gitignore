@@ -17,5 +17,5 @@ broadcast/*/31337/
 build/
 .sui/
 
-# Cloned third-party repos used for research (not ours)
-docs/research/src/
+# Raw research: scraped submissions, Mezo docs mirror, cloned third-party repos. Kept local only.
+docs/research/
