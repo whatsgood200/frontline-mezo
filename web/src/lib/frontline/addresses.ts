@@ -19,8 +19,12 @@ export const MUSD_ADDRESSES = {
   },
 } as const;
 
-/** Frontline contracts. Filled in Phase 3 after deployment. */
-export const FRONTLINE_ADDRESSES: { absorberVault: `0x${string}` | null; loanFactory: `0x${string}` | null } = {
-  absorberVault: null,
-  loanFactory: null,
-};
+/** Frontline contracts on Mezo testnet, deployed 2026-11-05 at block 16,591,000 (contracts/deployments/testnet.json). */
+export const FRONTLINE_ADDRESSES = {
+  absorberVault: "0x45805145536767435185c991097D8193A8518581",
+  loanFactory: "0xd7F44463230e95f6b490Da29b8bc475De25C98AB",
+  lens: "0x165b7Da20d3688eeF6b6E3D8227e43492Ea38F18",
+  loanImplementation: "0x4F4704404D073d8f4d60C609269845186802cffC",
+  absorberTroves: ["0xec6E0a1f1acEEf06E0F75a82b0683EC0298e3784", "0x4EE7c5C31176B0B6E09B3d5E0dee005c417B1872"],
+  deployBlock: 16_591_000,
+} as const;

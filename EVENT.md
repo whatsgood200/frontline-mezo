@@ -9,7 +9,7 @@ Folder is `2026-11-mezo-buildathon` until the project has a name; rename it then
 - [x] Phase 1 Plan approved by Right (gate) (2026-11-05)
 - [ ] Phase 1b Spikes passed, skeleton deployed
 - [x] Phase 2 UI and full flow on mocks approved by Right (gate) (2026-11-05)
-- [ ] Phase 3 Contracts and backend tested, deployed, verified (gate)
+- [x] Phase 3 Contracts and backend tested, deployed, verified (gate) (2026-11-05)
 - [ ] Phase 4 Connected: hero path real on the deployed URL
 - [ ] Phase 5 Depth and bounties done, feature freeze
 - [ ] Phase 6 Submitted, every link checked
@@ -77,11 +77,11 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
 - Done: Phase 2 UI approved (2026-11-05). Phase 3 contracts written and tested: AbsorberVault (+ AbsorberTrove proxies), ProtectedLoan clones and factory, PremiumModel, FrontlineLens, deploy script. 35 tests pass: 6 premium fuzz, 24 fork tests against the real MUSD contracts on a testnet fork, 5 spikes. Hero path proven in a fork: a real redemption hits the absorber, the protected loan does not move, vault value unchanged.
-- In progress: testnet deployment (needs Right's funded keystore wallet), then explorer verification (Phase 3 gate).
+- In progress: Phase 4, wiring the chain adapter to the deployed contracts.
 - Next: Phase 4, swap the chain adapter's "not deployed" stubs for real calls one function at a time; keeper job sized to target coverage (decision 008).
 - Blockers and risks: deployer wallet and testnet BTC (faucet CAPTCHA). Absorbers lose value when over-deployed (decision 008). Testnet band 112 to 115% is close to the 110% line.
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
-- Deployed URLs and contract addresses: app https://frontline-mezo.vercel.app (production, chain adapter); previews use the mock adapter; repo https://github.com/whatsgood200/frontline-mezo. Contracts: not deployed yet.
+- Deployed URLs and contract addresses: app https://frontline-mezo.vercel.app (production, chain adapter); previews use the mock adapter; repo https://github.com/whatsgood200/frontline-mezo. Contracts on Mezo testnet (block 16,591,000, deployer and keeper 0xd4171f06Da70216E0bB1069E41907F3d6723a097): AbsorberVault 0x45805145536767435185c991097D8193A8518581 (verified), ProtectedLoanFactory 0xd7F44463230e95f6b490Da29b8bc475De25C98AB (verified), FrontlineLens 0x165b7Da20d3688eeF6b6E3D8227e43492Ea38F18 (verified), ProtectedLoan template 0x4F4704404D073d8f4d60C609269845186802cffC, AbsorberTroves 0xec6E0a1f1acEEf06E0F75a82b0683EC0298e3784 and 0x4EE7c5C31176B0B6E09B3d5E0dee005c417B1872.
 - Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
@@ -97,4 +97,5 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - In Git Bash, prefix `vercel api /v9/...` with `MSYS_NO_PATHCONV=1` or the path is rewritten to a Windows path.
 - Mezo Passport on Next.js: import `@mezo-org/passport/dist/src/config` only (the index loads a Styletron UI kit that breaks SSR), transpile passport, orangekit, orangekit-contracts and orangekit-smart-account, and alias `@coinbase/wallet-sdk`, `@base-org/account`, `@coinbase/cdp-sdk` and `@react-native-async-storage/async-storage` to false. Passport declares React 18 but its config code runs on React 19 (pnpm `peerDependencyRules`).
 - Fork tests pin a block (`FORK_BLOCK`) so Foundry caches state: first run about 11 minutes, later runs seconds.
+- Blockscout on Mezo testnet does not index contracts created inside other contracts, so the loan template and absorber troves cannot be verified there yet. The template's bytecode matches `contracts/out` byte for byte.
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.

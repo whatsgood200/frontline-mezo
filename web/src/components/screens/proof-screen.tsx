@@ -24,7 +24,8 @@ const PROVEN = [
   { ok: true, text: "A contract can own and manage a trove on Mezo testnet: open with hints at about 526k gas, adjust, close (fork test S1)." },
   { ok: true, text: "A real redemption hits an absorber loan and leaves a protected loan's collateral and debt unchanged (fork test S2)." },
   { ok: true, text: "After a 3% BTC drop, repaying from held MUSD lifts an absorber loan from 111% back to 125% (fork test S5)." },
-  { ok: false, text: "Frontline contracts on Mezo testnet: not deployed yet (Phase 3)." },
+  { ok: true, text: "Frontline is deployed on Mezo testnet (block 16,591,000); the vault, factory and lens are source-verified on the explorer, and the loan template's bytecode matches the build exactly." },
+  { ok: true, text: "35 contract tests pass, including 24 end-to-end fork tests against the real MUSD contracts (deposit, protected loans, redemption, premiums, withdrawals, price shocks)." },
   { ok: false, text: "Outside users: none yet. Wallet addresses will be listed here with explorer links." },
   { ok: false, text: "Audit: none. Unaudited testnet software." },
 ];
@@ -57,11 +58,11 @@ export function ProofScreen() {
             ))}
             <li className="flex items-center justify-between gap-3 border-b border-line py-2.5">
               <span className="text-sm">AbsorberVault <span className="text-xs text-muted">(Frontline)</span></span>
-              <span className="font-mono text-xs text-muted">{FRONTLINE_ADDRESSES.absorberVault ? shortAddress(FRONTLINE_ADDRESSES.absorberVault) : "deploys in Phase 3"}</span>
+              <span className="font-mono text-xs text-muted">{FRONTLINE_ADDRESSES.absorberVault ? shortAddress(FRONTLINE_ADDRESSES.absorberVault) : "not deployed"}</span>
             </li>
             <li className="flex items-center justify-between gap-3 py-2.5">
               <span className="text-sm">ProtectedLoanFactory <span className="text-xs text-muted">(Frontline)</span></span>
-              <span className="font-mono text-xs text-muted">{FRONTLINE_ADDRESSES.loanFactory ? shortAddress(FRONTLINE_ADDRESSES.loanFactory) : "deploys in Phase 3"}</span>
+              <span className="font-mono text-xs text-muted">{FRONTLINE_ADDRESSES.loanFactory ? shortAddress(FRONTLINE_ADDRESSES.loanFactory) : "not deployed"}</span>
             </li>
           </ul>
         </Card>
