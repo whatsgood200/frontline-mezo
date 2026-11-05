@@ -22,3 +22,6 @@ docs/research/
 
 # Vercel link (local)
 .vercel
+
+# Foundry dry runs (simulations, not deployments)
+broadcast/*/*/dry-run/
