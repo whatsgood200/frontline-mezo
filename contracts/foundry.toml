@@ -13,7 +13,7 @@ remappings = [
   "forge-std/=lib/forge-std/src/",
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
 ]
-fs_permissions = [{ access = "read", path = "./" }]
+fs_permissions = [{ access = "read", path = "./" }, { access = "read-write", path = "./deployments" }]
 
 [profile.default.fuzz]
 runs = 512
@@ -26,3 +26,6 @@ depth = 64
 [rpc_endpoints]
 mezo_testnet = "https://rpc.test.mezo.org"
 mezo_mainnet = "https://mainnet.mezo.public.validationcloud.io"
+
+# Mezo explorers run Blockscout:
+#   forge verify-contract <addr> <Contract> --verifier blockscout --verifier-url https://api.explorer.test.mezo.org/api/
