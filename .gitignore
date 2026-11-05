@@ -16,3 +16,6 @@ broadcast/*/31337/
 # Move / Sui
 build/
 .sui/
+
+# Cloned third-party repos used for research (not ours)
+docs/research/src/

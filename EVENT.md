@@ -1,6 +1,6 @@
 # EVENT.md: (name TBD) at Mezo Buildathon, Wave 2
 
-Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Raw research: `docs/research/` (Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror).
+Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Idea research and recommendation: `docs/idea-research.md`. Raw research: `docs/research/` (Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror).
 
 Folder is `2026-11-mezo-buildathon` until the project has a name; rename it then.
 
@@ -68,15 +68,17 @@ No separate bounties. Track 1 and Track 2 can both be selected on the form.
 - Chosen direction (after Right's pick):
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
-- Done: Phase 0 report, EVENT.md brief, `../_chains/MEZO.md`, Wave 1 scores and feedback pulled from the AKINDO API.
-- In progress: waiting on Right to pick a direction (phase0-report section 7).
-- Next: Phase 1 plan for the chosen idea; first spike is the economics check named for that idea.
-- Blockers and risks: overlaps the NEAR HACKATHON build (Verdict, deadline 14 Nov). Small prize. Wave 1 teams resubmit with a two-week head start.
-- Decisions and assumptions: deadline is 13 Nov 05:30 UTC; submit 12 Nov; solo team (Right) unless told otherwise.
+- Done: Phase 0 report; idea research with live mainnet data (`docs/idea-research.md`); 13 ideas tested and killed with evidence; MUSD and Mezo Earn addresses verified on chain and saved in `../_chains/MEZO.md`.
+- In progress: waiting on Right to approve the direction (recommended: Frontline, a redemption market for MUSD).
+- Next: Phase 1 plan for the approved idea, then four spikes (proxy troves on testnet, redemption ordering, testnet MUSD supply, gauge path).
+- Blockers and risks: overlaps NEAR HACKATHON (Verdict, 14 Nov). Small prize. Keel (#4) and Baserate (#7) cite the same redemption pain with different fixes.
+- Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team.
 - Deployed URLs and contract addresses:
-- Parking lot (ideas for later, never for this build):
+- Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
 - AKINDO pages render client side. The public API is `https://api.akindo.io/public/wave-hacks/OVOO0gdrVU8379D10/waves` and `.../waves/<waveId>/submissions` (includes judge scores and comments after judging).
 - MUSD minimum loan is 1,800 MUSD plus a 200 MUSD gas deposit (2,000 MUSD debt at open). Liquidation below 110% ICR in every mode; Recovery Mode below 150% TCR blocks some withdrawals.
+- Mezo docs list a stale veBTC address; use the live addresses in `../_chains/MEZO.md` M.5b.
+- Redemptions, not liquidations, hit MUSD borrowers: 1,310 trove hits by redemption against 28 by liquidation (mainnet, all time).
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
