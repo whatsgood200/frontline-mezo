@@ -49,7 +49,10 @@ abstract contract ForkBase is Test {
         // pinned block over RPC and pin fetchPrice to it. Reading "latest" made the tests depend
         // on today's BTC price (a 5% drop put third-party loans in front of the test absorber).
         bytes memory raw = vm.rpc(
-            "eth_call", string.concat('[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"', _hexQuantity(forkBlock), '"]')
+            "eth_call",
+            string.concat(
+                '[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"', _hexQuantity(forkBlock), '"]'
+            )
         );
         _setPrice(abi.decode(raw, (uint256)));
 
@@ -72,7 +75,9 @@ abstract contract ForkBase is Test {
         if (n == 0) return "0x0";
         bytes memory digits = "0123456789abcdef";
         uint256 len;
-        for (uint256 t = n; t != 0; t >>= 4) ++len;
+        for (uint256 t = n; t != 0; t >>= 4) {
+            ++len;
+        }
         bytes memory out = new bytes(len + 2);
         out[0] = "0";
         out[1] = "x";
