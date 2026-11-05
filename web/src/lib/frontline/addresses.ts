@@ -8,6 +8,7 @@ export const MUSD_ADDRESSES = {
     borrowerOperations: "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
     hintHelpers: "0x4e4cBA3779d56386ED43631b4dCD6d8EacEcBCF6",
     musd: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+    collSurplusPool: "0xB4C35747c26E4aB5F1a7CdC7E875B5946eFa6fa9",
   },
   mainnet: {
     troveManager: "0x94AfB503dBca74aC3E4929BACEeDfCe19B93c193",
@@ -16,6 +17,7 @@ export const MUSD_ADDRESSES = {
     borrowerOperations: "0x44b1bac67dDA612a41a58AAf779143B181dEe031",
     hintHelpers: "0xD267b3bE2514375A075fd03C3D9CBa6b95317DC3",
     musd: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186",
+    collSurplusPool: "0xBF51807ACb3394B8550f0554FB9098856Ef5F491",
   },
 } as const;
 

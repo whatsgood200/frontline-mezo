@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useWalletAccount } from "@mezo-org/passport/dist/src/hooks/useWalletAccount";
 import { TxStatusView } from "@/components/tx-status";
 import { AmountField } from "@/components/ui/amount-field";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -21,7 +21,7 @@ export function BorrowScreen() {
   const debt = parseAmount(debtRaw);
   const valid = Number.isFinite(coll) && coll > 0 && Number.isFinite(debt) && debt > 0;
   const quote = useBorrowQuote(valid ? { collateralBtc: coll, borrowMusd: debt } : null);
-  const { address } = useAccount();
+  const { accountAddress: address } = useWalletAccount();
   const walletBtc = useWalletBtc();
   const existing = useLoan(address);
   const tx = useTx();

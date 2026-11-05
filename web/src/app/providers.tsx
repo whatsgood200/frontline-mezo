@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { WagmiProvider } from "wagmi";
+import { SignerBridge } from "@/components/signer-bridge";
 import { createWagmiConfig } from "@/lib/wallet";
 import { mezoTestnet } from "@/lib/mezo";
 
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider initialChain={mezoTestnet} theme={theme}>
+          <SignerBridge />
           {children}
           <Toaster position="top-center" closeButton richColors />
         </RainbowKitProvider>

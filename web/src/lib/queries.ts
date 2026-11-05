@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { erc20Abi } from "viem";
 import { useAccount, useBalance, useReadContract } from "wagmi";
+import { useWalletAccount } from "@mezo-org/passport/dist/src/hooks/useWalletAccount";
 import { DEMO_BALANCES, DEMO_CONNECTOR_ID } from "@/lib/demo-wallet";
 import { MUSD_ADDRESSES } from "@/lib/frontline/addresses";
 import { mezoTestnet } from "@/lib/mezo";
@@ -65,7 +66,8 @@ export function useRedemptionPreview(amount: number | null) {
 
 /** Native BTC in the connected wallet (Mezo testnet). The preview-only demo wallet reports a fixed balance. */
 export function useWalletBtc(): number | undefined {
-  const { address, connector } = useAccount();
+  const { connector } = useAccount();
+  const { accountAddress: address } = useWalletAccount();
   const demo = connector?.id === DEMO_CONNECTOR_ID;
   const bal = useBalance({ address, chainId: mezoTestnet.id, query: { enabled: !!address && !demo } });
   if (demo) return DEMO_BALANCES.btc;
@@ -74,7 +76,8 @@ export function useWalletBtc(): number | undefined {
 
 /** MUSD in the connected wallet (Mezo testnet). */
 export function useWalletMusd(): number | undefined {
-  const { address, connector } = useAccount();
+  const { connector } = useAccount();
+  const { accountAddress: address } = useWalletAccount();
   const demo = connector?.id === DEMO_CONNECTOR_ID;
   const bal = useReadContract({
     address: MUSD_ADDRESSES.testnet.musd,

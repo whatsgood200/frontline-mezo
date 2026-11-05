@@ -3,13 +3,15 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Wallet } from "lucide-react";
 import type { ReactNode } from "react";
-import { useAccount, useSwitchChain } from "wagmi";
+import { useSwitchChain } from "wagmi";
+import { useWalletAccount } from "@mezo-org/passport/dist/src/hooks/useWalletAccount";
 import { mezoTestnet } from "@/lib/mezo";
 import { Button } from "./ui/button";
 
 /** Shows its children only to a wallet connected to Mezo testnet; otherwise says what to do. */
 export function WalletGate({ children, purpose }: { children: (address: `0x${string}`) => ReactNode; purpose: string }) {
-  const { address, isConnected, chainId, status } = useAccount();
+  // For Bitcoin wallets this is the user's Mezo smart account, which owns their loan and shares.
+  const { accountAddress: address, isConnected, chainId, status, networkFamily } = useWalletAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChain, isPending } = useSwitchChain();
 
@@ -29,7 +31,7 @@ export function WalletGate({ children, purpose }: { children: (address: `0x${str
     );
   }
 
-  if (chainId !== mezoTestnet.id) {
+  if (networkFamily === "evm" && chainId !== mezoTestnet.id) {
     return (
       <div role="alert" className="flex flex-col items-start gap-3 rounded-[var(--radius-control)] border border-warning/30 bg-warning-soft p-5">
         <p className="text-sm font-semibold">Your wallet is on another network</p>
