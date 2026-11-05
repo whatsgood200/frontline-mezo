@@ -43,10 +43,14 @@ abstract contract ForkBase is Test {
 
     function setUp() public virtual {
         // Pinned block so Foundry caches fork state; override with FORK_BLOCK.
-        vm.createSelectFork("mezo_testnet", vm.envOr("FORK_BLOCK", uint256(16589905)));
-        // PriceFeed's oracle is a Mezo precompile a local fork cannot run: read the live price
-        // once over RPC and pin fetchPrice to it.
-        bytes memory raw = vm.rpc("eth_call", string.concat('[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"latest"]'));
+        uint256 forkBlock = vm.envOr("FORK_BLOCK", uint256(16589905));
+        vm.createSelectFork("mezo_testnet", forkBlock);
+        // PriceFeed's oracle is a Mezo precompile a local fork cannot run: read the price at the
+        // pinned block over RPC and pin fetchPrice to it. Reading "latest" made the tests depend
+        // on today's BTC price (a 5% drop put third-party loans in front of the test absorber).
+        bytes memory raw = vm.rpc(
+            "eth_call", string.concat('[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"', _hexQuantity(forkBlock), '"]')
+        );
         _setPrice(abi.decode(raw, (uint256)));
 
         vault = new AbsorberVault(BO, TM, PF, MUSD, 2, BAND_LOW, BAND_HIGH, keeper);
@@ -62,6 +66,22 @@ abstract contract ForkBase is Test {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /// JSON-RPC block number: 0x-prefixed hex without leading zeros.
+    function _hexQuantity(uint256 n) internal pure returns (string memory) {
+        if (n == 0) return "0x0";
+        bytes memory digits = "0123456789abcdef";
+        uint256 len;
+        for (uint256 t = n; t != 0; t >>= 4) ++len;
+        bytes memory out = new bytes(len + 2);
+        out[0] = "0";
+        out[1] = "x";
+        for (uint256 i = len + 1; i > 1; --i) {
+            out[i] = digits[n & 0xf];
+            n >>= 4;
+        }
+        return string(out);
+    }
 
     function _setPrice(uint256 p) internal {
         price = p;
