@@ -73,15 +73,15 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Avoid: crypto-casino visuals, purple to blue gradients, neon, glass cards, emoji icons, rows of identical cards, unexplained jargon (explain "redemption" in one line where it first appears).
 - Colors and fonts (or "agent proposes, Right picks"): agent proposes 2 or 3 directions on 6 Nov, Right picks.
 - Inspiration: screenshots and notes in `design/inspiration/` (MUSD Compass, Baserate, Janus; `notes.md` says what to take and avoid), links in `design/inspiration/links.md`. Three Line-screen directions on the design canvas https://claude.ai/artifact/7XCXzZVgmjjBJbz4DbayAN: A Departures (dark, mono board), B Statement (white, serif, highlighter), C Queue tool (light, interactive redemption preview).
-- Chosen direction (after Right's pick):
+- Chosen direction (after Right's pick): C (light, interactive queue tool) as the base, with A's line table on Redeem Lab and Proof (2026-11-05). Tokens in `web/src/app/globals.css`: absorbers orange, protected blue, Geist and Geist Mono.
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
-- Done: Phase 1 plan approved (2026-11-05). Spikes S1, S2 and S5 pass on a Mezo testnet fork with the real MUSD contracts (`docs/spikes.md`): proxy-owned troves work (open 526k gas), redemptions hit absorbers and stop before protected loans, held MUSD rescues an absorber after a 3% shock. Foundry project with pinned forge-std and OpenZeppelin 5.1. Next.js 15.5 skeleton with 7 routes, env guard (production refuses mock), `/api/health` checked live against testnet. CI workflow for contracts and web.
-- In progress: waiting on Right to pick a Line-screen direction (A, B or C) on the design canvas.
-- Next: 2 or 3 design directions for the Line screen, then all 7 screens on the mock adapter (Phase 2).
-- Blockers and risks: testnet BTC for live spikes (S3, faucet CAPTCHA). Testnet absorber band under 116% has about 4% price room; keeper plus permissionless protect() required.
+- Done: Phase 2 build. Seven screens (Line, Borrow, My loan, Absorb, My position, Redeem Lab, Proof) on one typed adapter (`web/src/lib/frontline/`). Mock adapter covers latency, signature, pending, confirmed, reverted, rejected, empty and RPC-down states (mock panel, preview only). Chain adapter already reads the real testnet line; Frontline writes say "not deployed yet". Shared quote and redemption math with 16 unit tests. Mezo Passport wallets plus a preview-only demo wallet. Next 15.5.29, React 19.1.10.
+- In progress: Right reviews the UI on the preview deployment (Phase 2 gate).
+- Next: Phase 3 contracts (AbsorberVault, ProtectedLoan factory, PremiumModel, FrontlineLens) with fork tests; fill the Screens table's last column first.
+- Blockers and risks: testnet BTC for deployment (faucet CAPTCHA). Demo wallet does not survive a hard reload (preview only). 46 transitive advisories inside Mezo Passport, none in our bundle (`docs/security.md`).
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
-- Deployed URLs and contract addresses: app https://frontline-mezo.vercel.app (production, chain adapter, `/api/health` live); repo https://github.com/whatsgood200/frontline-mezo (public, `main`, every push deploys). Previews use the mock adapter and need Vercel login (decision 007). Raw research stays local only (gitignored) and was removed from history before publishing; a local branch `backup/pre-publish` keeps the original history.
+- Deployed URLs and contract addresses: app https://frontline-mezo.vercel.app (production, chain adapter); previews use the mock adapter and need Vercel login (decision 007); repo https://github.com/whatsgood200/frontline-mezo. Raw research local only; local branch `backup/pre-publish` keeps the pre-publish history.
 - Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
@@ -95,4 +95,5 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - On this Windows machine forge's compiler download fails silently. solc 0.8.28 is installed at `~/.svm/0.8.28/solc-0.8.28.exe` (checksum verified); run forge with `FOUNDRY_SOLC` set to that path.
 - Vercel blocks vulnerable Next.js versions at deploy time. Keep Next on the latest 15.5.x backport and run `pnpm audit --prod` before pushing.
 - In Git Bash, prefix `vercel api /v9/...` with `MSYS_NO_PATHCONV=1` or the path is rewritten to a Windows path.
+- Mezo Passport on Next.js: import `@mezo-org/passport/dist/src/config` only (the index loads a Styletron UI kit that breaks SSR), transpile passport, orangekit, orangekit-contracts and orangekit-smart-account, and alias `@coinbase/wallet-sdk`, `@base-org/account`, `@coinbase/cdp-sdk` and `@react-native-async-storage/async-storage` to false. Passport declares React 18 but its config code runs on React 19 (pnpm `peerDependencyRules`).
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
