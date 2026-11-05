@@ -1,6 +1,6 @@
-# EVENT.md: (name TBD) at Mezo Buildathon, Wave 2
+# EVENT.md: Frontline (working name) at Mezo Buildathon, Wave 2
 
-Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Idea research and recommendation: `docs/idea-research.md`. Raw research: `docs/research/` (Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror).
+Read at the start of every session. On event facts and scoring this file overrides AGENTS.md. Chain notes: `../_chains/MEZO.md`. Phase 0 report: `docs/phase0-report.md`. Idea research: `docs/idea-research.md`. Plan: `docs/plan.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`. Raw research: `docs/research/` (Wave 1 scores and judge feedback, Wave 2 entries, Mezo docs mirror).
 
 Folder is `2026-11-mezo-buildathon` until the project has a name; rename it then.
 
@@ -39,46 +39,56 @@ No separate bounties. Track 1 and Track 2 can both be selected on the form.
 
 | Bounty | Prize | Requirements checklist | Our real integration | Proof (link / tx / clip) |
 |--------|-------|------------------------|----------------------|--------------------------|
-| Wave 2 pool | $5,000 in MEZO, proportional to points | MUSD/MEZO integration, deployment, repo, deck, 2 min video, form | TBD in Phase 1 | |
+| Wave 2 pool | $5,000 in MEZO, proportional to points | MUSD/MEZO integration, deployment, repo, deck, 2 min video, form | Frontline: redemption market on MUSD troves (Track 1 primary, Track 2 secondary) | testnet contracts, Redeem Lab tx, video |
 
 ## Product
-- Problem (one real detail or user quote):
-- Specific user, device and situation:
-- Why now:
-- Done statement: "A user can ..."
-- Hero moment, and the system behind it:
-- Must have:
-- Should have:
-- Could have:
-- Won't have:
-- Riskiest unknowns, with the fallback for each:
-- Stack and host:
+- Problem (one real detail or user quote): On Mezo mainnet, redemptions hit MUSD loans 1,310 times against 28 liquidations. 1,176 redemptions took 78.9 BTC from 189 borrowers; 3 loans remain open. MUSD trades at $0.990, so redeeming at $1 minus 0.75% is a standing arbitrage against the weakest loan.
+- Specific user, device and situation: a BTC holder with 0.05 to 2 BTC who wants dollars at Mezo's 1% fixed rate and does not want BTC sold at $1 parity, on phone or laptop. Second side: an absorber happy to turn part of their BTC into dollars at the oracle price for a premium.
+- Why now: Mezo Borrow TVL fell 63% in about 60 days; sMUSD earns about 0% because there is almost no loan interest left; Liquity v2 already proved paid redemption ordering; MUSD cannot change its core.
+- Done statement: "A borrower can open a 1% MUSD loan on Mezo testnet through Frontline, see exactly how much MUSD must be redeemed before anyone reaches it, and watch a real redemption stop at the absorber layer while their BTC stays untouched. An absorber can deposit BTC and earn the protection premium."
+- Hero moment, and the system behind it: Redeem Lab. A real testnet redemption shrinks the absorber loan and leaves the protected loan unchanged. It works because `TroveManager.redeemCollateral` walks from the lowest nominal ratio upward, and the Absorber Vault keeps its loans there.
+- Must have: AbsorberVault with proxies, band keeping, protect(), re-arm, surplus claim; ProtectedLoan factory with protection floor and premium collection; PremiumModel with coverage cap; FrontlineLens; 7 screens; keeper; unit, fuzz, invariant and fork tests; verified contracts; mainnet analytics; README, deck, video, 10+ outside wallets. Detail in `docs/plan.md` section 5.
+- Should have: auto top-up reserve, Telegram coverage alerts, payoff simulator, Recovery Mode handling.
+- Could have: migrate an existing EOA trove, Mezo Earn gauge, capped mainnet deploy, absorber MUSD in sMUSD.
+- Won't have: MUSD core changes, Morpho markets, veBTC collateral, cross-chain.
+- Riskiest unknowns, with the fallback for each: S1 proxy-owned troves and gas (fallback BorrowerOperationsSignatures on EOA troves); S2 redemption order on testnet (no fallback, stop if it fails); S3 enough testnet BTC (Discord grant, fewer loans); S4 not hitting other teams' loans (preview every redemption); S5 absorbers near 110% (price-shock tests, raise floor). See `docs/plan.md` section 7.
+- Stack and host: Foundry, Solidity 0.8.28 with `evm_version = london`, OpenZeppelin 5 (Clones, ReentrancyGuard). Next.js, wagmi, viem, Mezo Passport, shadcn/ui on Vercel. Keeper as a scheduled job. Mezo testnet (31611); mainnet read-only analytics.
 
 ## User flow and screens
+Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem Lab, 7 Proof. The last column is filled in Phase 3, before contract code.
+
 | # | Screen | User does | Adapter function (mocked in Phase 2) | Real implementation (contract call / read / event / API) |
 |---|--------|-----------|--------------------------------------|----------------------------------------------------------|
-| 1 |        |           |                                      |                                                          |
+| 1 | Line | Reads the problem, inspects the live redemption line, picks a side | `getLine(network)`, `getStats(network)` | |
+| 2 | Borrow | Sets BTC and MUSD, reads the full quote, opens a protected loan | `quoteBorrow(input)`, `openProtectedLoan(input)` | |
+| 3 | My loan | Checks health and buffer; adds BTC, repays, borrows more, withdraws, closes, claims surplus | `getLoan(owner)`, `adjustLoan(action)`, `closeLoan()`, `claimLoanSurplus()` | |
+| 4 | Absorb | Reads vault stats and the simulator, deposits BTC | `getVault()`, `quoteAbsorb(input)`, `deposit(amount)` | |
+| 5 | My absorber position | Checks value split, premiums and conversions, withdraws | `getAbsorber(owner)`, `withdraw(shares)` | |
+| 6 | Redeem Lab | Enters MUSD, previews which loans are hit, runs a real redemption | `previewRedemption(amount)`, `redeem(amount)` | |
+| 7 | Proof | Browses transactions, keeper log, addresses, mainnet analytics | `getActivity()`, `getKeeperLog()`, `getMainnetRedemptions()` | |
 
 ## Brand and design
-- Name and tagline:
-- Three words for the feel:
-- Avoid:
-- Colors and fonts (or "agent proposes, Right picks"):
-- Inspiration: screenshots in `design/inspiration/`, links:
+- Name and tagline: Frontline (working name). "Someone else stands first in the redemption line, and you pay them for it." Final name with the design directions.
+- Three words for the feel: calm, exact, trustworthy.
+- Avoid: crypto-casino visuals, purple to blue gradients, neon, glass cards, emoji icons, rows of identical cards, unexplained jargon (explain "redemption" in one line where it first appears).
+- Colors and fonts (or "agent proposes, Right picks"): agent proposes 2 or 3 directions on 6 Nov, Right picks.
+- Inspiration: screenshots in `design/inspiration/`, links: Right may drop references; the redemption line is the signature visual (an ordered queue like a departures board or an order book depth view).
 - Chosen direction (after Right's pick):
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
-- Done: Phase 0 report; idea research with live mainnet data (`docs/idea-research.md`); 13 ideas tested and killed with evidence; MUSD and Mezo Earn addresses verified on chain and saved in `../_chains/MEZO.md`.
-- In progress: waiting on Right to approve the direction (recommended: Frontline, a redemption market for MUSD).
-- Next: Phase 1 plan for the approved idea, then four spikes (proxy troves on testnet, redemption ordering, testnet MUSD supply, gauge path).
-- Blockers and risks: overlaps NEAR HACKATHON (Verdict, 14 Nov). Small prize. Keel (#4) and Baserate (#7) cite the same redemption pain with different fixes.
-- Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team.
+- Done: Phase 0 report; idea research with live mainnet data; Frontline approved by Right as the direction (2026-11-05); Phase 1 plan, architecture and 6 decision records written; testnet facts verified (361 loans, 288% system ratio, no Recovery Mode, 1% rate, 1,800 minimum net debt, lowest third-party loan 116.4%).
+- In progress: waiting on Right to approve the Phase 1 plan and flow (gate).
+- Next: spikes S1 to S5, deployed skeleton, 2 or 3 design directions for the Line screen.
+- Blockers and risks: testnet BTC needed for loans with a 2,000 MUSD minimum (Right requests from the faucet). Overlaps NEAR HACKATHON (Verdict, 14 Nov). Keel (#4) and Baserate (#7) cite the same pain with different fixes.
+- Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
 - Deployed URLs and contract addresses:
-- Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline.
+- Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
 - AKINDO pages render client side. The public API is `https://api.akindo.io/public/wave-hacks/OVOO0gdrVU8379D10/waves` and `.../waves/<waveId>/submissions` (includes judge scores and comments after judging).
 - MUSD minimum loan is 1,800 MUSD plus a 200 MUSD gas deposit (2,000 MUSD debt at open). Liquidation below 110% ICR in every mode; Recovery Mode below 150% TCR blocks some withdrawals.
 - Mezo docs list a stale veBTC address; use the live addresses in `../_chains/MEZO.md` M.5b.
 - Redemptions, not liquidations, hit MUSD borrowers: 1,310 trove hits by redemption against 28 by liquidation (mainnet, all time).
+- Redemption takes min(amount, debt - 200) per loan. A full hit closes the loan by redemption and sends leftover BTC to CollSurplusPool (owner claims). A partial hit that would leave net debt under 1,800 MUSD is cancelled and the whole redemption stops there.
+- Testnet already has third-party loans from 116.4% ratio up (5 Nov). Preview every demo redemption so we never hit other teams' loans.
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
