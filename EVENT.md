@@ -76,12 +76,12 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Chosen direction (after Right's pick): C (light, interactive queue tool) as the base, with A's line table on Redeem Lab and Proof (2026-11-05). Tokens in `web/src/app/globals.css`: absorbers orange, protected blue, Geist and Geist Mono.
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
-- Done: Phase 2 UI approved (2026-11-05). Phase 3 contracts written and tested: AbsorberVault (+ AbsorberTrove proxies), ProtectedLoan clones and factory, PremiumModel, FrontlineLens, deploy script. 35 tests pass: 6 premium fuzz, 24 fork tests against the real MUSD contracts on a testnet fork, 5 spikes. Hero path proven in a fork: a real redemption hits the absorber, the protected loan does not move, vault value unchanged.
-- In progress: Phase 4, wiring the chain adapter to the deployed contracts.
-- Next: Phase 4, swap the chain adapter's "not deployed" stubs for real calls one function at a time; keeper job sized to target coverage (decision 008).
-- Blockers and risks: deployer wallet and testnet BTC (faucet CAPTCHA). Absorbers lose value when over-deployed (decision 008). Testnet band 112 to 115% is close to the 110% line.
-- Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
-- Deployed URLs and contract addresses: app https://frontline-mezo.vercel.app (production, chain adapter); previews use the mock adapter; repo https://github.com/whatsgood200/frontline-mezo. Contracts on Mezo testnet (block 16,591,000, deployer and keeper 0xd4171f06Da70216E0bB1069E41907F3d6723a097): AbsorberVault 0x45805145536767435185c991097D8193A8518581 (verified), ProtectedLoanFactory 0xd7F44463230e95f6b490Da29b8bc475De25C98AB (verified), FrontlineLens 0x165b7Da20d3688eeF6b6E3D8227e43492Ea38F18 (verified), ProtectedLoan template 0x4F4704404D073d8f4d60C609269845186802cffC, AbsorberTroves 0xec6E0a1f1acEEf06E0F75a82b0683EC0298e3784 and 0x4EE7c5C31176B0B6E09B3d5E0dee005c417B1872.
+- Done: Phase 3 gate (deployed and verified, 2026-11-05). Phase 4 code: chain adapter reads and writes on the deployed contracts (simulate, padded gas, Passport smart accounts for Bitcoin wallets, receipts, decoded errors), keeper planner and runner with a scheduled GitHub Action, end-to-end fork test passing every write through the browser's own builders. Production (frontline-mezo.vercel.app, commit 6b93d5a) reads the live line through FrontlineLens.
+- In progress: the live hero path. Blocker below.
+- Next: Right's decision on the live redemption demo; keeper key secret; more testnet BTC; then run the hero path on the deployed URL (Phase 4 gate).
+- Blockers and risks: four third-party testnet loans sit at 110.5 to 111.8% (BTC fell about 4.5% on 5 Nov), below our 112% band. MUSD sorts by nominal ratio, so new absorber loans would queue behind them, and the front loan's 1,802 MUSD minimum means any redemption must close it first. Deployer has 0.05 BTC; the demo needs about 0.1 more. 46 transitive advisories inside Mezo Passport (docs/security.md).
+- Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team.
+- Deployed URLs and contract addresses: see README "Deployed on Mezo testnet"; app https://frontline-mezo.vercel.app; repo https://github.com/whatsgood200/frontline-mezo.
 - Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
 
 ## Project rules and gotchas (agent appends after every bug or surprise)
@@ -98,4 +98,7 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Mezo Passport on Next.js: import `@mezo-org/passport/dist/src/config` only (the index loads a Styletron UI kit that breaks SSR), transpile passport, orangekit, orangekit-contracts and orangekit-smart-account, and alias `@coinbase/wallet-sdk`, `@base-org/account`, `@coinbase/cdp-sdk` and `@react-native-async-storage/async-storage` to false. Passport declares React 18 but its config code runs on React 19 (pnpm `peerDependencyRules`).
 - Fork tests pin a block (`FORK_BLOCK`) so Foundry caches state: first run about 11 minutes, later runs seconds.
 - Blockscout on Mezo testnet does not index contracts created inside other contracts, so the loan template and absorber troves cannot be verified there yet. The template's bytecode matches `contracts/out` byte for byte.
+- BorrowerOperations and TroveManager both emit TroveUpdated with the same signature; operation 2 means adjust in one and redeem in the other. Count redemptions only from TroveManager.
+- Fork end-to-end test: put MockAggregator's code at the oracle precompile 0x7b7c…0015, pin anvil to a block for caching; a first run takes about 15 minutes.
+- Testnet BTC fell from $80,340 to about $76,000 on 5 Nov; third-party loans now sit at 110.5% and up, under our band.
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
