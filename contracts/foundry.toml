@@ -1,0 +1,28 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.28"
+# Mezo runs the London EVM: no PUSH0, no MCOPY.
+evm_version = "london"
+optimizer = true
+optimizer_runs = 200
+remappings = [
+  "forge-std/=lib/forge-std/src/",
+  "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+]
+fs_permissions = [{ access = "read", path = "./" }]
+
+[profile.default.fuzz]
+runs = 512
+seed = "0x46726f6e746c696e65"
+
+[profile.default.invariant]
+runs = 128
+depth = 64
+
+[rpc_endpoints]
+mezo_testnet = "https://rpc.test.mezo.org"
+mezo_mainnet = "https://mainnet.mezo.public.validationcloud.io"

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      fork_spikes:
+        description: "Also run the Mezo testnet fork spikes (slow, needs the public RPC)"
+        type: boolean
+        default: false
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Build
+        run: forge build --sizes
+      - name: Unit, fuzz and invariant tests
+        run: |
+          if ls test/*.t.sol >/dev/null 2>&1; then forge test --no-match-path "test/spikes/*" -vv; else echo "no unit tests yet"; fi
+      - name: Fork spikes against Mezo testnet
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.fork_spikes }}
+        run: forge test --match-path "test/spikes/*" -vv
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_ADAPTER: mock
+          NEXT_PUBLIC_NETWORK: testnet

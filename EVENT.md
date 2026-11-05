@@ -6,7 +6,7 @@ Folder is `2026-11-mezo-buildathon` until the project has a name; rename it then
 
 ## Status
 - [x] Phase 0 Decode and research (2026-11-05)
-- [ ] Phase 1 Plan approved by Right (gate)
+- [x] Phase 1 Plan approved by Right (gate) (2026-11-05)
 - [ ] Phase 1b Spikes passed, skeleton deployed
 - [ ] Phase 2 UI and full flow on mocks approved by Right (gate)
 - [ ] Phase 3 Contracts and backend tested, deployed, verified (gate)
@@ -76,10 +76,10 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Chosen direction (after Right's pick):
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
-- Done: Phase 0 report; idea research with live mainnet data; Frontline approved by Right as the direction (2026-11-05); Phase 1 plan, architecture and 6 decision records written; testnet facts verified (361 loans, 288% system ratio, no Recovery Mode, 1% rate, 1,800 minimum net debt, lowest third-party loan 116.4%).
-- In progress: waiting on Right to approve the Phase 1 plan and flow (gate).
-- Next: spikes S1 to S5, deployed skeleton, 2 or 3 design directions for the Line screen.
-- Blockers and risks: testnet BTC needed for loans with a 2,000 MUSD minimum (Right requests from the faucet). Overlaps NEAR HACKATHON (Verdict, 14 Nov). Keel (#4) and Baserate (#7) cite the same pain with different fixes.
+- Done: Phase 1 plan approved (2026-11-05). Spikes S1, S2 and S5 pass on a Mezo testnet fork with the real MUSD contracts (`docs/spikes.md`): proxy-owned troves work (open 526k gas), redemptions hit absorbers and stop before protected loans, held MUSD rescues an absorber after a 3% shock. Foundry project with pinned forge-std and OpenZeppelin 5.1. Next.js 15.5 skeleton with 7 routes, env guard (production refuses mock), `/api/health` checked live against testnet. CI workflow for contracts and web.
+- In progress: deploying the skeleton needs a GitHub repo and a Vercel project (Right's go-ahead and login).
+- Next: 2 or 3 design directions for the Line screen, then all 7 screens on the mock adapter (Phase 2).
+- Blockers and risks: testnet BTC for live spikes (S3, faucet CAPTCHA). Testnet absorber band under 116% has about 4% price room; keeper plus permissionless protect() required.
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
 - Deployed URLs and contract addresses:
 - Parking lot (ideas for later, never for this build): Track 2 phone-first BTC dollar account on top of Frontline; migration of existing EOA troves; Mezo Earn gauge.
@@ -91,4 +91,6 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Redemptions, not liquidations, hit MUSD borrowers: 1,310 trove hits by redemption against 28 by liquidation (mainnet, all time).
 - Redemption takes min(amount, debt - 200) per loan. A full hit closes the loan by redemption and sends leftover BTC to CollSurplusPool (owner claims). A partial hit that would leave net debt under 1,800 MUSD is cancelled and the whole redemption stops there.
 - Testnet already has third-party loans from 116.4% ratio up (5 Nov). Preview every demo redemption so we never hit other teams' loans.
+- Local forks cannot run Mezo precompiles (BTC price oracle `0x7b7c…0015`, MEZO). Fork tests read the live price over RPC and mock `PriceFeed.fetchPrice`.
+- On this Windows machine forge's compiler download fails silently. solc 0.8.28 is installed at `~/.svm/0.8.28/solc-0.8.28.exe` (checksum verified); run forge with `FOUNDRY_SOLC` set to that path.
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
