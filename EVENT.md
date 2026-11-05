@@ -72,12 +72,12 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Three words for the feel: calm, exact, trustworthy.
 - Avoid: crypto-casino visuals, purple to blue gradients, neon, glass cards, emoji icons, rows of identical cards, unexplained jargon (explain "redemption" in one line where it first appears).
 - Colors and fonts (or "agent proposes, Right picks"): agent proposes 2 or 3 directions on 6 Nov, Right picks.
-- Inspiration: screenshots in `design/inspiration/`, links: Right may drop references; the redemption line is the signature visual (an ordered queue like a departures board or an order book depth view).
+- Inspiration: screenshots and notes in `design/inspiration/` (MUSD Compass, Baserate, Janus; `notes.md` says what to take and avoid), links in `design/inspiration/links.md`. Three Line-screen directions on the design canvas https://claude.ai/artifact/7XCXzZVgmjjBJbz4DbayAN: A Departures (dark, mono board), B Statement (white, serif, highlighter), C Queue tool (light, interactive redemption preview).
 - Chosen direction (after Right's pick):
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
 - Done: Phase 1 plan approved (2026-11-05). Spikes S1, S2 and S5 pass on a Mezo testnet fork with the real MUSD contracts (`docs/spikes.md`): proxy-owned troves work (open 526k gas), redemptions hit absorbers and stop before protected loans, held MUSD rescues an absorber after a 3% shock. Foundry project with pinned forge-std and OpenZeppelin 5.1. Next.js 15.5 skeleton with 7 routes, env guard (production refuses mock), `/api/health` checked live against testnet. CI workflow for contracts and web.
-- In progress: Phase 2 design directions for the Line screen. Inspiration links for Right in `design/inspiration/links.md`.
+- In progress: waiting on Right to pick a Line-screen direction (A, B or C) on the design canvas.
 - Next: 2 or 3 design directions for the Line screen, then all 7 screens on the mock adapter (Phase 2).
 - Blockers and risks: testnet BTC for live spikes (S3, faucet CAPTCHA). Testnet absorber band under 116% has about 4% price room; keeper plus permissionless protect() required.
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team; testnet product, mainnet analytics.
