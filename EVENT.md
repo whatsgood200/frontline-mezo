@@ -77,8 +77,9 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 
 ## Live status (agent updates after every feature and before ending a session; under 250 words)
 - Done: Phase 3 gate (deployed and verified, 2026-11-05). Phase 4 code: chain adapter reads and writes on the deployed contracts (simulate, padded gas, Passport smart accounts for Bitcoin wallets, receipts, decoded errors), keeper planner and runner with a scheduled GitHub Action, end-to-end fork test passing every write through the browser's own builders. Production (frontline-mezo.vercel.app, commit 6b93d5a) reads the live line through FrontlineLens.
-- In progress: the live hero path. Blocker below.
-- Next: Right's decision on the live redemption demo; keeper key secret; more testnet BTC; then run the hero path on the deployed URL (Phase 4 gate).
+- Fork clip done (2026-11-05, Right chose "wait, plus fork clip"): hero path recorded through the app on an anvil fork, labelled as a fork, in `design/demo/fork-clip/` and the README. Fixed on the way: wagmi reads in fork mode, Borrow quote undercounting the buffer past 40 rows, buffer now excludes gas deposits (matches the lens), plain revert strings shown instead of "(Error)".
+- In progress: the live hero path on testnet, waiting for the front of the line to clear.
+- Next: keeper key secret; more testnet BTC; watch the keeper front log; run the hero path on the deployed URL (Phase 4 gate).
 - Blockers and risks: four third-party testnet loans sit at 110.5 to 111.8% (BTC fell about 4.5% on 5 Nov), below our 112% band. MUSD sorts by nominal ratio, so new absorber loans would queue behind them, and the front loan's 1,802 MUSD minimum means any redemption must close it first. Deployer has 0.05 BTC; the demo needs about 0.1 more. 46 transitive advisories inside Mezo Passport (docs/security.md).
 - Decisions and assumptions: deadline 13 Nov 05:30 UTC; submit 12 Nov; solo team.
 - Deployed URLs and contract addresses: see README "Deployed on Mezo testnet"; app https://frontline-mezo.vercel.app; repo https://github.com/whatsgood200/frontline-mezo.
@@ -102,3 +103,5 @@ Journey: 1 Line, 2 Borrow, 3 My loan, 4 Absorb, 5 My absorber position, 6 Redeem
 - Fork end-to-end test: put MockAggregator's code at the oracle precompile 0x7b7c…0015, pin anvil to a block for caching; a first run takes about 15 minutes.
 - Testnet BTC fell from $80,340 to about $76,000 on 5 Nov; third-party loans now sit at 110.5% and up, under our band.
 - Testnet ValidatorsVoter is the zero address (judge note to Doji); validator-vote features are mainnet only.
+- Mezo testnet RPC caps eth_call at 10M gas. `FrontlineLens.line` costs about 35k gas a row (max about 280 rows); `bufferAhead` about 17k a row (about 580 rows). Testnet has 362 loans and 429M MUSD of system debt, so a deep protected loan shows hundreds of millions of MUSD ahead.
+- MUSD accepts a partial-redemption hint only within 10 minutes of interest accrual (`upperBoundNICR`). An idle anvil fork mines no blocks, so `latest` (hints) and `pending` (gas estimate) drift apart and the redemption reverts with "Unable to redeem any amount". Run `cast rpc evm_mine` before a fork redemption, or start anvil with `--block-time 2`. Fork activity times also lag wall time.

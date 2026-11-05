@@ -33,21 +33,26 @@ export function totalDebtFor(borrowMusd: number): { fee: number; total: number }
   return { fee, total: borrowMusd + fee + MUSD.gasDeposit };
 }
 
-/** Sum of debt on loans in front of a ratio (loans are ordered front first). */
-export function bufferAhead(loans: LineLoan[], ratio: number): { total: number; guaranteed: number } {
+/**
+ * Redeemable MUSD on loans in front of a ratio (loans are ordered front first). Each loan's
+ * 200 MUSD gas deposit is never redeemed, so it is left out, as FrontlineLens.bufferAhead does.
+ * `reachedEnd` is true when every given loan is in front, so the real buffer may be larger.
+ */
+export function bufferAhead(loans: LineLoan[], ratio: number): { total: number; guaranteed: number; reachedEnd: boolean } {
   let total = 0;
   let guaranteed = 0;
   for (const loan of loans) {
-    if (loan.ratio >= ratio || loan.side === "protected") break;
-    total += loan.debt;
-    if (loan.side === "absorber") guaranteed += loan.debt;
+    if (loan.ratio >= ratio || loan.side === "protected") return { total, guaranteed, reachedEnd: false };
+    const redeemable = Math.max(0, loan.debt - MUSD.gasDeposit);
+    total += redeemable;
+    if (loan.side === "absorber") guaranteed += redeemable;
   }
-  return { total, guaranteed };
+  return { total, guaranteed, reachedEnd: true };
 }
 
 export function quoteBorrow(
   input: BorrowInput,
-  ctx: { btcPrice: number; loans: LineLoan[]; absorberDebt: number; protectedDebt: number; walletBtc?: number },
+  ctx: { btcPrice: number; loans: LineLoan[]; absorberDebt: number; protectedDebt: number; walletBtc?: number; totalLoans?: number },
 ): BorrowQuote {
   const { fee, total } = totalDebtFor(input.borrowMusd);
   const collateralValue = input.collateralBtc * ctx.btcPrice;
@@ -95,6 +100,8 @@ export function quoteBorrow(
     firstYearCost: total * (MUSD.interestRate + premium),
     bufferAhead: buffer.total,
     guaranteedBuffer: buffer.guaranteed,
+    // Only part of the line was read and the borrower sits behind all of it.
+    bufferIsMinimum: buffer.reachedEnd && (ctx.totalLoans ?? ctx.loans.length) > ctx.loans.length,
     maxProtectedDebt,
     warnings,
     allowed: warnings.length === 0 && input.collateralBtc > 0 && input.borrowMusd > 0,

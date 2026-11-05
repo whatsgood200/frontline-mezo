@@ -46,7 +46,7 @@ export function LineScreen() {
           <span className="self-start rounded-md bg-protected px-2 py-1 text-xs font-semibold text-white">Protected borrower</span>
           <p className="text-[22px] font-bold leading-snug">
             Borrow at Mezo&apos;s {pct(MUSD.interestRate, 0)}
-            {buffer && buffer.total > 0 ? <>, behind {musd(buffer.total)} MUSD of buffer.</> : <>, behind the absorber layer.</>}
+            {buffer && buffer.total > 0 ? <>, behind {buffer.reachedEnd && line.data!.totalLoans > line.data!.loans.length ? "more than " : ""}{musd(buffer.total)} MUSD of buffer.</> : <>, behind the absorber layer.</>}
           </p>
           <p className="text-[15px] leading-relaxed text-ink-2">
             You keep a normal MUSD loan on Mezo. Frontline keeps it above the absorber layer and shows exactly how much must be redeemed

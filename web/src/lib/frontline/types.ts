@@ -71,6 +71,8 @@ export interface BorrowQuote {
   firstYearCost: number;
   bufferAhead: number;
   guaranteedBuffer: number;
+  /** True when the borrower sits behind every loan that was read, so `bufferAhead` is a lower bound. */
+  bufferIsMinimum: boolean;
   maxProtectedDebt: number;
   warnings: Warning[];
   allowed: boolean;

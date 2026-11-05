@@ -1,5 +1,6 @@
 import { createPublicClient, http, type Address, type Hex, type PublicClient } from "viem";
 import { chains } from "@/lib/mezo";
+import { env } from "@/lib/env";
 import * as calls from "./chain-calls";
 import { explainError, isUserRejection } from "./errors";
 import { MAINNET_SNAPSHOT } from "./mainnet-snapshot";
@@ -13,7 +14,9 @@ import { FrontlineError, type FrontlineAdapter, type OnTxStatus, type TxResult }
 let publicClient: PublicClient | null = null;
 export function client(): PublicClient {
   if (!publicClient) {
-    publicClient = createPublicClient({ chain: chains.testnet, transport: http(undefined, { batch: true, timeout: 15_000, retryCount: 2 }) }) as PublicClient;
+    // A local fork pulls cold state from the remote RPC on first touch, so it gets a longer timeout.
+    const timeout = env.forkDemo ? 180_000 : 15_000;
+    publicClient = createPublicClient({ chain: chains.testnet, transport: http(undefined, { batch: true, timeout, retryCount: 2 }) }) as PublicClient;
   }
   return publicClient;
 }

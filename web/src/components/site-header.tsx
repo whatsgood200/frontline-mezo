@@ -4,6 +4,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/format";
+import { env } from "@/lib/env";
 
 const NAV = [
   { href: "/", label: "Line" },
@@ -53,7 +54,11 @@ export function SiteHeader() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <span className="hidden rounded-full bg-sunken px-2.5 py-1.5 font-mono text-xs text-muted sm:inline">Mezo Testnet</span>
+          {env.forkDemo ? (
+            <span className="rounded-full bg-warning-soft px-2.5 py-1.5 font-mono text-xs font-semibold text-warning">Local fork of Mezo testnet</span>
+          ) : (
+            <span className="hidden rounded-full bg-sunken px-2.5 py-1.5 font-mono text-xs text-muted sm:inline">Mezo Testnet</span>
+          )}
           <ConnectButton label="Connect wallet" accountStatus="address" chainStatus="icon" showBalance={false} />
         </div>
       </div>

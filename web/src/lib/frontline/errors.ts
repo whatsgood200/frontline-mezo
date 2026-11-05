@@ -34,7 +34,10 @@ export function explainError(err: unknown): string {
     const withData = err.walk((e) => typeof (e as { data?: unknown }).data === "string") as { data?: Hex } | null;
     if (withData?.data && withData.data.length >= 10) {
       try {
-        const decoded = decodeErrorResult({ abi: ABI, data: withData.data });
+        // Widened: viem also decodes the built-in Error(string), which our ABIs do not list.
+        const decoded = decodeErrorResult({ abi: ABI, data: withData.data }) as { errorName: string; args?: readonly unknown[] };
+        // MUSD reverts with strings.
+        if (decoded.errorName === "Error") return explainRevertString(String(decoded.args?.[0] ?? ""));
         if (MESSAGES[decoded.errorName]) return MESSAGES[decoded.errorName];
         return `The contract refused this (${decoded.errorName}).`;
       } catch {
@@ -46,6 +49,11 @@ export function explainError(err: unknown): string {
     return err.shortMessage;
   }
   return err instanceof Error ? err.message : "Something went wrong. Nothing was sent.";
+}
+
+function explainRevertString(reason: string): string {
+  for (const [re, msg] of KNOWN_STRINGS) if (re.test(reason)) return msg;
+  return reason ? `The contract refused this: ${reason}.` : "The contract refused this without a reason.";
 }
 
 export function isUserRejection(err: unknown): boolean {

@@ -26,6 +26,24 @@ Plan: [docs/plan.md](docs/plan.md). Architecture: [docs/architecture.md](docs/ar
 - A full hit closes the absorber loan and its surplus BTC is claimable.
 - After a 3% BTC drop, repaying from the vault's held MUSD restores the absorber from 111% to 125%.
 
+## The hero path, recorded on a local fork
+
+![Frontline hero path on a local fork of Mezo testnet](design/demo/fork-clip/frontline-fork-hero.gif)
+
+This clip is **not** live testnet. It runs the production web app, built in a fork mode, against an anvil fork of Mezo testnet (block 16,591,390) that holds the real MUSD and Frontline contracts. Every step is a transaction sent from the app's own wallet flow: open a protected loan (0.2 BTC, 6,000 MUSD), redeem 5,000 MUSD in Redeem Lab, see Absorber loan 1 drop from 30,347 to 25,347 MUSD while the protected loan keeps its 0.2 BTC and 6,206 MUSD of debt. MP4: [frontline-fork-hero.mp4](design/demo/fork-clip/frontline-fork-hero.mp4).
+
+Why a fork: on 5 Nov testnet BTC fell about 4.5%, and third-party loans now sit at 110.5 to 112% ratio, under our 112% band. A live redemption would have to close other teams' loans first, which Redeem Lab refuses to do. The fork setup (`web/scripts/fork-setup.ts`) moves those loans back by adding collateral on the fork only, at testnet's live BTC price, then deposits and deploys one absorber loan. The live testnet run follows when the front of the line clears.
+
+Reproduce (Git Bash, from `web/`):
+
+```bash
+anvil --fork-url https://rpc.test.mezo.org --fork-block-number 16591390 --chain-id 31611 --port 8546
+pnpm fork:setup
+NEXT_PUBLIC_ADAPTER=chain NEXT_PUBLIC_NETWORK=testnet NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8546 NEXT_PUBLIC_FORK_DEMO=1 pnpm build && pnpm start -p 3125
+```
+
+Fork mode refuses to run outside local development (`web/src/lib/env.ts`), labels every page "Local fork of Mezo testnet" and does not link fork transactions to the public explorer.
+
 ## Deployed on Mezo testnet (chain 31611)
 
 | Contract | Address | Source |

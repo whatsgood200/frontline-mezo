@@ -16,8 +16,11 @@ export function QueuePreview({ line }: { line: LineSnapshot }) {
   const takenAt = new Map(preview.steps.map((s) => [s.position, s.taken]));
   const rows = line.loans.slice(0, 11);
 
-  const verdict =
-    preview.fromProtected > 0
+  const last = preview.steps.at(-1);
+  const cancelled = !!last && last.taken === 0;
+  const verdict = cancelled
+    ? `MUSD would stop this redemption at ${last.label}: taking it would leave that loan under Mezo's 1,800 MUSD minimum debt. Pick another size.`
+    : preview.fromProtected > 0
       ? "This size runs past the buffer and reaches protected loans. Frontline caps new protected debt so coverage stays above its minimum."
       : preview.fromAbsorbers > 0
         ? `Protected loans are untouched. Absorbers swap ${btc(preview.fromAbsorbers / line.btcPrice, 3)} BTC for MUSD at the oracle price, with no loss in dollar value.`

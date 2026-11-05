@@ -1,10 +1,15 @@
 import type { Wallet } from "@rainbow-me/rainbowkit";
 import { createConnector, mock } from "wagmi";
 
-// Preview builds only (mock adapter): a wallet that signs nothing, so reviewers can click
-// through every flow without testnet funds. Never offered when the chain adapter is on.
+// Preview builds (mock adapter): a wallet that signs nothing, so reviewers can click through every
+// flow without testnet funds. Local fork demo: the same wallet sends real transactions to anvil.
+// Never offered on a deployed chain build.
 
-export const DEMO_ADDRESS = "0xF20b000000000000000000000000000000de0001" as const;
+/** Mock builds: an address that signs nothing. Fork demo: anvil's first dev account, which anvil signs for. */
+export const DEMO_ADDRESS =
+  process.env.NEXT_PUBLIC_FORK_DEMO === "1"
+    ? ("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as const)
+    : ("0xF20b000000000000000000000000000000de0001" as const);
 export const DEMO_CONNECTOR_ID = "frontline-demo";
 export const DEMO_BALANCES = { btc: 2.5, musd: 50_000 };
 
@@ -14,7 +19,7 @@ const icon =
 
 export const demoWallet = (): Wallet => ({
   id: DEMO_CONNECTOR_ID,
-  name: "Demo wallet (preview)",
+  name: process.env.NEXT_PUBLIC_FORK_DEMO === "1" ? "Fork demo wallet" : "Demo wallet (preview)",
   iconUrl: icon,
   iconBackground: "#12161c",
   installed: true,
@@ -25,6 +30,6 @@ export const demoWallet = (): Wallet => ({
       ...mock({ accounts: [DEMO_ADDRESS], features: { reconnect: true, defaultConnected: true } })(config),
       ...walletDetails,
       id: DEMO_CONNECTOR_ID,
-      name: "Demo wallet (preview)",
+      name: process.env.NEXT_PUBLIC_FORK_DEMO === "1" ? "Fork demo wallet" : "Demo wallet (preview)",
     })),
 });

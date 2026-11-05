@@ -68,7 +68,7 @@ export function useRedemptionPreview(amount: number | null) {
 export function useWalletBtc(): number | undefined {
   const { connector } = useAccount();
   const { accountAddress: address } = useWalletAccount();
-  const demo = connector?.id === DEMO_CONNECTOR_ID;
+  const demo = connector?.id === DEMO_CONNECTOR_ID && env.adapter === "mock";
   const bal = useBalance({ address, chainId: mezoTestnet.id, query: { enabled: !!address && !demo } });
   if (demo) return DEMO_BALANCES.btc;
   return bal.data ? Number(bal.data.value) / 1e18 : undefined;
@@ -78,7 +78,7 @@ export function useWalletBtc(): number | undefined {
 export function useWalletMusd(): number | undefined {
   const { connector } = useAccount();
   const { accountAddress: address } = useWalletAccount();
-  const demo = connector?.id === DEMO_CONNECTOR_ID;
+  const demo = connector?.id === DEMO_CONNECTOR_ID && env.adapter === "mock";
   const bal = useReadContract({
     address: MUSD_ADDRESSES.testnet.musd,
     abi: erc20Abi,

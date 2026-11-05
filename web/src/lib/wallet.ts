@@ -34,8 +34,15 @@ export function createWagmiConfig(): Config {
     wallets: [
       { groupName: "Bitcoin", wallets: [unisatWalletMezoTestnet, okxWalletMezoTestnet, xverseWalletMezoTestnet] },
       { groupName: "Ethereum", wallets: evmWallets },
-      ...(env.adapter === "mock" ? [{ groupName: "Preview only", wallets: [demoWallet] }] : []),
+      ...(env.adapter === "mock" || env.forkDemo ? [{ groupName: env.forkDemo ? "Local fork" : "Preview only", wallets: [demoWallet] }] : []),
     ],
     ssr: true,
-  });
+    // Fork demo: reads and writes must go to the fork. Passport spreads extra parameters after its
+    // own chains and transports, so these override its hard-coded testnet RPC.
+    ...(env.forkDemo ? forkOverrides() : {}),
+  } as Parameters<typeof getConfig>[0]);
+}
+
+function forkOverrides() {
+  return { chains: [mezoTestnet] as [typeof mezoTestnet], transports: { [mezoTestnet.id]: http(env.rpcOverride ?? undefined) } };
 }

@@ -110,9 +110,13 @@ export function BorrowScreen() {
             <div className="flex flex-col">
               <div className="mb-4 rounded-[var(--radius-control)] bg-protected-soft p-4">
                 <p className="text-sm text-protected-ink">MUSD redeemed before your loan is touched</p>
-                <p className="tabular mt-1 font-mono text-3xl font-semibold">{musd(q.bufferAhead)}</p>
+                <p className="tabular mt-1 font-mono text-3xl font-semibold">
+                  {q.bufferIsMinimum ? <span className="mr-2 font-sans text-lg font-medium text-ink-2">More than</span> : null}
+                  {musd(q.bufferAhead)}
+                </p>
                 <p className="mt-1 text-sm text-ink-2">
                   <span className="font-semibold text-absorber-ink">{musd(q.guaranteedBuffer)} guaranteed</span> by absorbers ·{" "}
+                  {q.bufferIsMinimum ? "more than " : ""}
                   {musd(q.bufferAhead - q.guaranteedBuffer)} from other loans
                 </p>
               </div>

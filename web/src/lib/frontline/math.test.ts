@@ -32,10 +32,12 @@ describe("borrow quote", () => {
     expect(q.allowed).toBe(true);
   });
 
-  it("counts only loans in front of the borrower as buffer", () => {
+  it("counts only loans in front of the borrower as buffer, without their gas deposits", () => {
     const q = quoteBorrow({ collateralBtc: 0.1, borrowMusd: 4_000 }, ctx);
-    expect(q.guaranteedBuffer).toBe(42_180);
-    expect(q.bufferAhead).toBe(57_608);
+    // 9 loans in front: 57,608 MUSD of debt minus 9 x 200 MUSD gas deposits.
+    expect(q.guaranteedBuffer).toBe(41_780);
+    expect(q.bufferAhead).toBe(55_808);
+    expect(q.bufferIsMinimum).toBe(false);
   });
 
   it("refuses loans under Mezo's minimum debt", () => {
@@ -109,5 +111,20 @@ describe("absorb quote", () => {
 describe("buffer", () => {
   it("is zero for a loan at the very front", () => {
     expect(bufferAhead(seedLine(), 1.0).total).toBe(0);
+  });
+
+  it("counts only redeemable debt: the 200 MUSD gas deposit is never redeemed (matches FrontlineLens.bufferAhead)", () => {
+    const loans = seedLine().slice(0, 2);
+    const expected = loans.reduce((s, l) => s + l.debt - 200, 0);
+    expect(bufferAhead(loans, 99).total).toBe(expected);
+  });
+
+  it("says when the loaded part of the line ends before the borrower's ratio", () => {
+    const line = seedLine();
+    const ctx = { btcPrice: PRICE, loans: line.slice(0, 3), absorberDebt: 42_180, protectedDebt: 120_500 };
+    const deep = quoteBorrow({ collateralBtc: 0.2, borrowMusd: 4_000 }, { ...ctx, totalLoans: 362 });
+    expect(deep.bufferIsMinimum).toBe(true);
+    const whole = quoteBorrow({ collateralBtc: 0.2, borrowMusd: 4_000 }, { ...ctx, totalLoans: 3 });
+    expect(whole.bufferIsMinimum).toBe(false);
   });
 });

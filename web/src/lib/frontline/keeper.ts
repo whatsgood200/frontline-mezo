@@ -1,7 +1,8 @@
 import { encodeFunctionData, zeroAddress, type Address, type PublicClient } from "viem";
 import { absorberVaultAbi, protectedLoanAbi, protectedLoanFactoryAbi } from "./abi";
 import { FRONTLINE_ADDRESSES, MUSD_ADDRESSES } from "./addresses";
-import { insertHints, readPrice, type TxRequest } from "./chain-calls";
+import { insertHints, readLine, readPrice, type TxRequest } from "./chain-calls";
+import { frontStatus, type FrontStatus } from "./front";
 import { borrowerOperationsAbi, collSurplusPoolAbi, sortedTrovesAbi, troveManagerAbi } from "./musd-abi";
 
 // Keeper policy (docs/decisions/008). Plans one run from live state; the runner sends it.
@@ -122,3 +123,8 @@ const tx = (to: Address, data: `0x${string}`, label: string): TxRequest => ({ to
 const maxBig = (a: bigint, b: bigint) => (a > b ? a : b);
 const fmt = (x: bigint) => (Number(x) / 1e18).toLocaleString("en-US", { maximumFractionDigits: 4 });
 const pct = (x: bigint) => `${(Number(x) / 1e16).toFixed(1)}%`;
+
+/** Front of the line, logged every keeper run so the moment it clears is on record. */
+export async function readFront(c: PublicClient): Promise<FrontStatus> {
+  return frontStatus((await readLine(c)).loans);
+}

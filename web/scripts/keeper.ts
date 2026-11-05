@@ -11,7 +11,7 @@ import { createPublicClient, createWalletClient, http, type PublicClient } from 
 import { privateKeyToAccount } from "viem/accounts";
 import { mezoTestnet } from "../src/lib/mezo";
 import { explainError } from "../src/lib/frontline/errors";
-import { planKeeper } from "../src/lib/frontline/keeper";
+import { planKeeper, readFront } from "../src/lib/frontline/keeper";
 
 const GAS_PAD_NUM = 13n;
 const GAS_PAD_DEN = 10n;
@@ -23,6 +23,8 @@ function log(entry: Record<string, unknown>) {
 async function main() {
   const rpc = process.env.MEZO_RPC_URL ?? mezoTestnet.rpcUrls.default.http[0];
   const client = createPublicClient({ chain: mezoTestnet, transport: http(rpc, { timeout: 60_000, retryCount: 2 }) }) as PublicClient;
+  const front = await readFront(client);
+  log({ action: "front", ...front, lowestRatio: front.lowestRatio === null ? null : Number(front.lowestRatio.toFixed(4)) });
   const steps = await planKeeper(client);
   if (steps.length === 0) {
     log({ action: "noop", detail: "Absorber loans inside the band, coverage on target, no premiums due." });

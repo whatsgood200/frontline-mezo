@@ -10,6 +10,7 @@ import {
   sortedTrovesAbi,
   troveManagerAbi,
 } from "./musd-abi";
+import { musd } from "@/lib/format";
 import * as math from "./math";
 import { FRONTLINE, MUSD } from "./params";
 import {
@@ -36,6 +37,8 @@ const WAD = 10n ** 18n;
 const SHARE_UNIT = 10n ** 21n;
 const STATUS_ACTIVE = 1;
 const LINE_DEPTH = 40n;
+// Mezo's RPC caps eth_call at 10M gas; FrontlineLens.line costs about 35k gas a row (250 rows: 8.7M).
+const DEEP_LINE_DEPTH = 250n;
 
 export interface TxRequest {
   to: Address;
@@ -64,10 +67,10 @@ async function guard<T>(what: string, run: () => Promise<T>): Promise<T> {
 
 export const readPrice = (c: PublicClient) => c.readContract({ address: M.priceFeed, abi: priceFeedAbi, functionName: "fetchPrice" });
 
-export function readLine(c: PublicClient): Promise<LineSnapshot> {
+export function readLine(c: PublicClient, depth = LINE_DEPTH): Promise<LineSnapshot> {
   return guard("the redemption line", async () => {
     const [[rows, price, total], absorberDebt, protectedDebt, block] = await Promise.all([
-      c.readContract({ address: F.lens, abi: frontlineLensAbi, functionName: "line", args: [LINE_DEPTH] }),
+      c.readContract({ address: F.lens, abi: frontlineLensAbi, functionName: "line", args: [depth] }),
       c.readContract({ address: F.absorberVault, abi: absorberVaultAbi, functionName: "absorberDebt" }),
       c.readContract({ address: F.loanFactory, abi: protectedLoanFactoryAbi, functionName: "totalProtectedDebt" }),
       c.getBlockNumber(),
@@ -125,8 +128,11 @@ export function readVault(c: PublicClient): Promise<VaultStats> {
 }
 
 export async function quoteBorrowLive(c: PublicClient, input: BorrowInput) {
-  const line = await readLine(c);
-  return math.quoteBorrow(input, { btcPrice: line.btcPrice, loans: line.loans, absorberDebt: line.absorberDebt, protectedDebt: line.protectedDebt });
+  const quoteFrom = (line: LineSnapshot) =>
+    math.quoteBorrow(input, { btcPrice: line.btcPrice, loans: line.loans, absorberDebt: line.absorberDebt, protectedDebt: line.protectedDebt, totalLoans: line.totalLoans });
+  const quote = quoteFrom(await readLine(c));
+  // A loan behind the first 40 rows needs a deeper read to count what stands in front of it.
+  return quote.bufferIsMinimum ? quoteFrom(await readLine(c, DEEP_LINE_DEPTH)) : quote;
 }
 
 export async function loanAddress(c: PublicClient, owner: Address): Promise<Address | null> {
@@ -273,14 +279,14 @@ export function readActivity(c: PublicClient): Promise<ActivityItem[]> {
       const base = { hash: l.transactionHash, block: l.blockNumber, index: l.logIndex };
       const a = l.args as Record<string, bigint | Address | undefined>;
       if (l.eventName === "Deposited") raw.push({ ...base, kind: "deposit", summary: `Absorber deposit: ${num(a.btc as bigint).toFixed(4)} BTC.`, account: a.account as Address });
-      if (l.eventName === "Withdrawn") raw.push({ ...base, kind: "withdraw", summary: `Absorber withdrawal: ${num(a.btc as bigint).toFixed(4)} BTC and ${num(a.musd as bigint).toFixed(2)} MUSD.`, account: a.account as Address });
+      if (l.eventName === "Withdrawn") raw.push({ ...base, kind: "withdraw", summary: `Absorber withdrawal: ${num(a.btc as bigint).toFixed(4)} BTC and ${musd(num(a.musd as bigint), 2)} MUSD.`, account: a.account as Address });
       if (l.eventName === "Deployed") raw.push({ ...base, kind: "rearm", summary: `Absorber loan ${Number(a.trove) + 1} deployed ${num(a.btc as bigint).toFixed(4)} BTC at ${(num(a.icr as bigint) * 100).toFixed(1)}%.`, account: F.absorberVault });
       if (l.eventName === "Rebalanced") raw.push({ ...base, kind: "rearm", summary: `Absorber loan ${Number(a.trove) + 1} rebalanced to ${(num(a.icrAfter as bigint) * 100).toFixed(1)}%.`, account: F.absorberVault });
-      if (l.eventName === "Protected") raw.push({ ...base, kind: "protect", summary: `Absorber loan ${Number(a.trove) + 1} protected: repaid ${num(a.repaid as bigint).toFixed(2)} MUSD.`, account: a.caller as Address });
-      if (l.eventName === "PremiumReceived") raw.push({ ...base, kind: "premium", summary: `Premium received: ${num(a.amount as bigint).toFixed(2)} MUSD.`, account: a.loan as Address });
+      if (l.eventName === "Protected") raw.push({ ...base, kind: "protect", summary: `Absorber loan ${Number(a.trove) + 1} protected: repaid ${musd(num(a.repaid as bigint), 2)} MUSD.`, account: a.caller as Address });
+      if (l.eventName === "PremiumReceived") raw.push({ ...base, kind: "premium", summary: `Premium received: ${musd(num(a.amount as bigint), 2)} MUSD.`, account: a.loan as Address });
     }
     for (const l of factoryLogs) {
-      raw.push({ hash: l.transactionHash, block: l.blockNumber, index: l.logIndex, kind: "open", summary: `Protected loan opened: ${num(l.args.collateral ?? 0n).toFixed(4)} BTC, ${num(l.args.debt ?? 0n).toFixed(0)} MUSD.`, account: l.args.owner as Address });
+      raw.push({ hash: l.transactionHash, block: l.blockNumber, index: l.logIndex, kind: "open", summary: `Protected loan opened: ${num(l.args.collateral ?? 0n).toFixed(4)} BTC, ${musd(num(l.args.debt ?? 0n), 0)} MUSD.`, account: l.args.owner as Address });
     }
     const prev = new Map<string, bigint>();
     for (const l of troveLogs) {
@@ -288,7 +294,7 @@ export function readActivity(c: PublicClient): Promise<ActivityItem[]> {
       const debt = (l.args._principal ?? 0n) + (l.args._interest ?? 0n);
       const p = prev.get(key);
       if (isRedemption(l) && p !== undefined) {
-        raw.push({ hash: l.transactionHash, block: l.blockNumber, index: l.logIndex, kind: "redemption", summary: `Redemption took ${num(p - debt).toFixed(0)} MUSD from absorber loan ${absorberIndex(key) + 1}. Protected loans untouched.`, account: l.args._borrower as Address });
+        raw.push({ hash: l.transactionHash, block: l.blockNumber, index: l.logIndex, kind: "redemption", summary: `Redemption took ${musd(num(p - debt), 0)} MUSD from absorber loan ${absorberIndex(key) + 1}. Protected loans untouched.`, account: l.args._borrower as Address });
       }
       prev.set(key, debt);
     }
@@ -387,7 +393,7 @@ export async function buildCloseLoan(c: PublicClient, owner: Address): Promise<T
   const pull = needed > held ? ((needed - held) * 1005n) / 1000n : 0n;
   const ownerMusd = await c.readContract({ address: M.musd, abi: erc20Abi, functionName: "balanceOf", args: [owner] });
   if (ownerMusd < pull) {
-    throw new FrontlineError(`Closing needs ${num(pull).toFixed(2)} MUSD in your wallet; you hold ${num(ownerMusd).toFixed(2)}.`, "INVALID_INPUT");
+    throw new FrontlineError(`Closing needs ${musd(num(pull), 2)} MUSD in your wallet; you hold ${num(ownerMusd).toFixed(2)}.`, "INVALID_INPUT");
   }
   return [
     ...(pull > 0n ? await approveIfNeeded(c, owner, loan, pull) : []),
@@ -433,7 +439,7 @@ export async function buildRedeem(c: PublicClient, amountMusd: number): Promise<
     {
       to: M.troveManager,
       value: 0n,
-      label: `Redeem ${num(truncated).toFixed(0)} MUSD`,
+      label: `Redeem ${musd(num(truncated), 0)} MUSD`,
       data: encodeFunctionData({ abi: troveManagerAbi, functionName: "redeemCollateral", args: [truncated, first, up, low, partialNicr, 0n] }),
     },
   ];

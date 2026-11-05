@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FrontNotice } from "@/components/front-notice";
 import { LineBoard } from "@/components/line-board";
 import { TxStatusView } from "@/components/tx-status";
 import { AmountField } from "@/components/ui/amount-field";
@@ -36,6 +37,8 @@ export function LabScreen() {
           inside the absorber layer, so other teams&apos; testnet loans are never touched.
         </p>
       </header>
+
+      {line.data ? <FrontNotice line={line.data} /> : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card aria-labelledby="redeem-title">
@@ -100,6 +103,9 @@ export function LabScreen() {
                 <div className={cn("rounded-[var(--radius-control)] p-3", p.fromProtected > 0 ? "bg-danger-soft" : "bg-protected-soft")}><p className="text-xs text-protected-ink">Protected</p><p className="tabular font-mono font-semibold">{musd(p.fromProtected)}</p></div>
               </div>
               <Row label="It stops at" value={p.stopsAt ?? "Nothing"} />
+              {p.steps.at(-1)?.taken === 0 ? (
+                <p className="py-2 text-sm text-warning">MUSD would cancel the last step: it would leave {p.stopsAt} under the 1,800 MUSD minimum debt. Pick another size.</p>
+              ) : null}
               <Row label="BTC you receive" value={`${btc(p.btcOut, 6)} BTC`} />
               <Row label="Redemption fee (0.75%, in BTC)" value={`${btc(p.redemptionFeeBtc, 6)} BTC`} />
             </div>
