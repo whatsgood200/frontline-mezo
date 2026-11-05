@@ -19,3 +19,6 @@ build/
 
 # Raw research: scraped submissions, Mezo docs mirror, cloned third-party repos. Kept local only.
 docs/research/
+
+# Vercel link (local)
+.vercel
