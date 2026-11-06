@@ -22,7 +22,9 @@ interface ILoanFactory {
 ///         adds risk must leave the trove at or above PROTECTION_FLOOR, well above the absorber
 ///         band, so MUSD's redemption order reaches absorbers first.
 ///
-///         The protection premium accrues per second on total debt at the vault's current rate.
+///         The protection premium accrues per second on total debt. Each period is charged at the
+///         lower of the vault's rate at the last accrual and its rate now, so nobody can raise the
+///         rate (by briefly adding protected debt) just before collecting from everyone else.
 ///         Anyone may call `collectPremium`: it draws the premium as new MUSD debt on this trove
 ///         (like interest) and sends it to the vault. Collection that would push the trove under
 ///         the floor reverts, and the premium keeps accruing until the owner adds collateral.
@@ -38,6 +40,7 @@ contract ProtectedLoan is ReentrancyGuard {
     address public owner;
     uint256 public premiumOwed;
     uint64 public lastAccrual;
+    uint64 public lastRate;
 
     event Opened(address indexed owner, uint256 collateral, uint256 debt);
     event Adjusted(address indexed owner, int256 collateralDelta, int256 debtDelta, uint256 icr);
@@ -80,6 +83,8 @@ contract ProtectedLoan is ReentrancyGuard {
         uint256 ratio = _requireAboveFloor();
         _sendMusd(owner, factory.musd().balanceOf(address(this)));
         _sync();
+        // Read after the sync so the rate reflects coverage including this loan.
+        lastRate = uint64(factory.vault().premiumRate());
         emit Opened(owner, msg.value, debt);
         emit Adjusted(owner, int256(msg.value), int256(debt), ratio);
     }
@@ -160,6 +165,12 @@ contract ProtectedLoan is ReentrancyGuard {
         emit PremiumCollected(amount, ratio);
     }
 
+    /// @notice Anyone may refresh this loan's debt in the factory's total, for example after a
+    ///         redemption or liquidation changed it without an owner action.
+    function sync() external nonReentrant {
+        _sync();
+    }
+
     // ------------------------------------------------------------------ views
 
     function isActive() public view returns (bool) {
@@ -182,12 +193,15 @@ contract ProtectedLoan is ReentrancyGuard {
         uint256 dt = block.timestamp - lastAccrual;
         if (dt == 0) return 0;
         (, uint256 principal, uint256 interest,,,) = factory.troveManager().getEntireDebtAndColl(address(this));
-        return ((principal + interest) * factory.vault().premiumRate() * dt) / (WAD * YEAR);
+        uint256 rate = factory.vault().premiumRate();
+        if (lastRate < rate) rate = lastRate;
+        return ((principal + interest) * rate * dt) / (WAD * YEAR);
     }
 
     function _accrue() internal {
         premiumOwed += _accrued();
         lastAccrual = uint64(block.timestamp);
+        lastRate = uint64(factory.vault().premiumRate());
     }
 
     function _icr() internal view returns (uint256) {

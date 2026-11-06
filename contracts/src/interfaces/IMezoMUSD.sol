@@ -20,8 +20,14 @@ interface IBorrowerOperations {
     function closeTrove() external;
     function claimCollateral() external;
     function minNetDebt() external view returns (uint256);
+    function collSurplusPool() external view returns (address);
     function getBorrowingFee(uint256 debt) external view returns (uint256);
     function getRedemptionRate(uint256 collateralDrawn) external view returns (uint256);
+}
+
+interface ICollSurplusPool {
+    /// BTC a closed trove's owner can claim after a full redemption or a Recovery Mode liquidation.
+    function getCollateral(address account) external view returns (uint256);
 }
 
 interface ITroveManager {
@@ -65,10 +71,7 @@ interface ISortedTroves {
     function getNext(address id) external view returns (address);
     function getSize() external view returns (uint256);
     function contains(address id) external view returns (bool);
-    function findInsertPosition(uint256 nicr, address prevId, address nextId)
-        external
-        view
-        returns (address, address);
+    function findInsertPosition(uint256 nicr, address prevId, address nextId) external view returns (address, address);
 }
 
 interface IHintHelpers {

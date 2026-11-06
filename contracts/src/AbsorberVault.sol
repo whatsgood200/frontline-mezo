@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {IBorrowerOperations, ITroveManager, IPriceFeed} from "./interfaces/IMezoMUSD.sol";
+import {IBorrowerOperations, ITroveManager, IPriceFeed, ICollSurplusPool} from "./interfaces/IMezoMUSD.sol";
 import {IProtectedLoanRegistry} from "./interfaces/IFrontline.sol";
 import {AbsorberTrove} from "./AbsorberTrove.sol";
 import {PremiumModel} from "./PremiumModel.sol";
@@ -21,8 +21,12 @@ import {PremiumModel} from "./PremiumModel.sol";
 ///
 ///         Net asset value, in MUSD:
 ///           idle BTC * price + trove collateral * price + MUSD held - sum(trove debt - gas deposit)
+///           + BTC waiting in MUSD's CollSurplusPool for a trove a redemption closed
+///           - premium MUSD still vesting
 ///         A redemption at the oracle price leaves NAV unchanged: it removes BTC and the same
-///         dollar value of debt. Premiums from protected loans add MUSD and raise NAV.
+///         dollar value of debt. Premiums from protected loans add MUSD and raise NAV as they
+///         vest over PREMIUM_VESTING, so a deposit made just before a collection earns nothing
+///         that accrued before it.
 ///
 ///         The owner can set the keeper and the band inside hard bounds and pause deposits.
 ///         The owner cannot move or withdraw anyone's funds.
@@ -37,6 +41,7 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     uint256 public constant MIN_DEPOSIT = 0.0001 ether;
     uint256 public constant PROTECT_BOUNTY = 1e18;
     uint256 public constant MAX_TROVES = 5;
+    uint256 public constant PREMIUM_VESTING = 3 days;
     // Virtual shares and assets blunt first-depositor inflation (as in OpenZeppelin ERC4626).
     uint256 internal constant VIRTUAL_SHARES = 1e3;
     uint256 internal constant VIRTUAL_ASSETS = 1;
@@ -45,6 +50,7 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     ITroveManager public immutable troveManager;
     IPriceFeed public immutable priceFeed;
     IERC20 public immutable musd;
+    ICollSurplusPool public immutable collSurplusPool;
 
     AbsorberTrove[] internal _troves;
     mapping(address => bool) public isAbsorberTrove;
@@ -54,6 +60,8 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     address public keeper;
     IProtectedLoanRegistry public registry;
     bool public depositsPaused;
+    uint256 internal _vestingAmount;
+    uint256 internal _vestingStart;
 
     struct Hint {
         address upper;
@@ -116,6 +124,7 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
         troveManager = troveManager_;
         priceFeed = priceFeed_;
         musd = musd_;
+        collSurplusPool = ICollSurplusPool(borrowerOperations_.collSurplusPool());
         for (uint256 i; i < troveCount_; ++i) {
             AbsorberTrove t = new AbsorberTrove(borrowerOperations_, musd_);
             _troves.push(t);
@@ -162,14 +171,21 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     ///         not yet covered by premiums, typically for the last absorber out), the shortfall is
     ///         pulled from the caller, who must approve it; anything left over comes back.
     /// @param hints one sorted-list hint pair per absorber trove, for its post-adjustment ratio.
-    function withdraw(uint256 shares, Hint[] calldata hints) external nonReentrant returns (uint256 btcOut, uint256 musdOut) {
+    function withdraw(uint256 shares, Hint[] calldata hints)
+        external
+        nonReentrant
+        returns (uint256 btcOut, uint256 musdOut)
+    {
         if (hints.length != _troves.length) revert HintCount();
         if (shares == 0) revert ZeroShares();
+        // Surplus BTC from a trove a redemption closed belongs to every holder; bring it in first.
+        _claimSurpluses();
         uint256 supply = totalSupply();
         uint256 price = priceFeed.fetchPrice();
 
         btcOut = (address(this).balance * shares) / supply;
-        uint256 musdShare = (musd.balanceOf(address(this)) * shares) / supply;
+        // Premium still vesting stays with the holders who remain.
+        uint256 musdShare = (_vestedMusd() * shares) / supply;
         uint256 liabilityShare;
 
         for (uint256 i; i < _troves.length; ++i) {
@@ -251,6 +267,8 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     /// @notice Protected loans send premiums here (MUSD already transferred).
     function notifyPremium(uint256 amount) external {
         if (address(registry) == address(0) || !registry.isLoan(msg.sender)) revert NotRegisteredLoan();
+        _vestingAmount = unvestedPremium() + amount;
+        _vestingStart = block.timestamp;
         emit PremiumReceived(msg.sender, amount);
     }
 
@@ -295,6 +313,13 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
         }
     }
 
+    /// @notice Premium MUSD received but not yet counted in NAV; it vests linearly.
+    function unvestedPremium() public view returns (uint256) {
+        uint256 elapsed = block.timestamp - _vestingStart;
+        if (elapsed >= PREMIUM_VESTING) return 0;
+        return (_vestingAmount * (PREMIUM_VESTING - elapsed)) / PREMIUM_VESTING;
+    }
+
     function protectedDebt() public view returns (uint256) {
         return address(registry) == address(0) ? 0 : registry.totalProtectedDebt();
     }
@@ -322,7 +347,11 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
 
     function previewDeposit(uint256 btc) external view returns (uint256) {
         uint256 price = priceFeed.fetchPrice();
-        return Math.mulDiv((btc * price) / WAD, totalSupply() + VIRTUAL_SHARES, _totalAssets(price, address(this).balance) + VIRTUAL_ASSETS);
+        return Math.mulDiv(
+            (btc * price) / WAD,
+            totalSupply() + VIRTUAL_SHARES,
+            _totalAssets(price, address(this).balance) + VIRTUAL_ASSETS
+        );
     }
 
     function stats() external view returns (Stats memory s) {
@@ -363,14 +392,32 @@ contract AbsorberVault is ERC20, ReentrancyGuard, Ownable2Step {
     function _totalAssets(uint256 price, uint256 idleBtc) internal view returns (uint256) {
         uint256 gasComp = troveManager.MUSD_GAS_COMPENSATION();
         uint256 assets = (idleBtc * price) / WAD + musd.balanceOf(address(this));
-        uint256 liabilities;
+        uint256 liabilities = unvestedPremium();
         for (uint256 i; i < _troves.length; ++i) {
+            assets += (collSurplusPool.getCollateral(address(_troves[i])) * price) / WAD;
             (bool active, uint256 coll, uint256 debt) = _troveState(_troves[i]);
             if (!active) continue;
             assets += (coll * price) / WAD;
             liabilities += debt - gasComp;
         }
         return assets > liabilities ? assets - liabilities : 0;
+    }
+
+    function _claimSurpluses() internal {
+        for (uint256 i; i < _troves.length; ++i) {
+            AbsorberTrove t = _troves[i];
+            if (collSurplusPool.getCollateral(address(t)) == 0) continue;
+            uint256 before = address(this).balance;
+            t.claimSurplus();
+            emit SurplusClaimed(i, address(this).balance - before);
+        }
+    }
+
+    /// @dev MUSD held minus premium still vesting.
+    function _vestedMusd() internal view returns (uint256) {
+        uint256 held = musd.balanceOf(address(this));
+        uint256 unvested = unvestedPremium();
+        return held > unvested ? held - unvested : 0;
     }
 
     /// @dev Unwinds `shares / supply` of one trove: repays that slice of its debt from held MUSD

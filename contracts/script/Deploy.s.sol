@@ -34,14 +34,17 @@ contract Deploy is Script {
         AbsorberVault vault = new AbsorberVault(BO, TM, PF, MUSD, ABSORBER_TROVES, BAND_LOW, BAND_HIGH, msg.sender);
         ProtectedLoanFactory factory = new ProtectedLoanFactory(IAbsorberVault(address(vault)), BO, TM, PF, MUSD);
         vault.setRegistry(IProtectedLoanRegistry(address(factory)));
-        FrontlineLens lens = new FrontlineLens(ST, TM, PF, IAbsorberVault(address(vault)), IProtectedLoanRegistry(address(factory)));
+        FrontlineLens lens =
+            new FrontlineLens(ST, TM, PF, IAbsorberVault(address(vault)), IProtectedLoanRegistry(address(factory)));
         vm.stopBroadcast();
 
         console2.log("AbsorberVault       ", address(vault));
         console2.log("ProtectedLoanFactory", address(factory));
         console2.log("ProtectedLoan impl  ", factory.implementation());
         console2.log("FrontlineLens       ", address(lens));
-        for (uint256 i; i < ABSORBER_TROVES; ++i) console2.log("AbsorberTrove", i, vault.troveAt(i));
+        for (uint256 i; i < ABSORBER_TROVES; ++i) {
+            console2.log("AbsorberTrove", i, vault.troveAt(i));
+        }
 
         string memory obj = "deployment";
         vm.serializeUint(obj, "chainId", block.chainid);

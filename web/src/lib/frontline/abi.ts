@@ -105,6 +105,19 @@ export const absorberVaultAbi = [
   },
   {
     "type": "function",
+    "name": "PREMIUM_VESTING",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "PROTECT_BOUNTY",
     "inputs": [],
     "outputs": [
@@ -254,6 +267,19 @@ export const absorberVaultAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "collSurplusPool",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract ICollSurplusPool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -892,6 +918,19 @@ export const absorberVaultAbi = [
         "name": "",
         "type": "address",
         "internalType": "contract ITroveManager"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "unvestedPremium",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -2050,6 +2089,19 @@ export const protectedLoanAbi = [
   },
   {
     "type": "function",
+    "name": "lastRate",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "open",
     "inputs": [
       {
@@ -2130,6 +2182,13 @@ export const protectedLoanAbi = [
         "internalType": "address"
       }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "sync",
+    "inputs": [],
     "outputs": [],
     "stateMutability": "nonpayable"
   },

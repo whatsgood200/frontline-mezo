@@ -20,11 +20,12 @@ Plan: [docs/plan.md](docs/plan.md). Architecture: [docs/architecture.md](docs/ar
 
 ## What is proven so far
 
-35 contract tests pass, including 24 end-to-end fork tests against the real MUSD contracts on Mezo testnet (`contracts/test/fork/`) and the spikes in [docs/spikes.md](docs/spikes.md):
+36 contract tests pass, including 30 end-to-end fork tests against the real MUSD contracts on Mezo testnet (`contracts/test/fork/`) and the spikes in [docs/spikes.md](docs/spikes.md):
 - A contract can own and manage a trove (open with hints: 525,675 gas).
 - A real `redeemCollateral` hits the absorber loan and leaves the protected loan untouched.
 - A full hit closes the absorber loan and its surplus BTC is claimable.
 - After a 3% BTC drop, repaying from the vault's held MUSD restores the absorber from 111% to 125%.
+- A 6 Nov self-review found one High and two Medium issues (surplus BTC missing from NAV, just-in-time premium capture, premium rate pumping); all are fixed with fork tests. Details: [docs/security.md](docs/security.md).
 
 ## The hero path, recorded on a local fork
 

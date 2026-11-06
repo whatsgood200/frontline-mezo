@@ -39,12 +39,16 @@ contract AbsorberTrove {
     }
 
     /// @dev MUSD for a debt decrease must already sit in this contract; repayment burns it from here.
-    function adjust(uint256 collWithdrawal, uint256 debtChange, bool isDebtIncrease, address upperHint, address lowerHint)
-        external
-        payable
-        onlyVault
-    {
-        borrowerOperations.adjustTrove{value: msg.value}(collWithdrawal, debtChange, isDebtIncrease, upperHint, lowerHint);
+    function adjust(
+        uint256 collWithdrawal,
+        uint256 debtChange,
+        bool isDebtIncrease,
+        address upperHint,
+        address lowerHint
+    ) external payable onlyVault {
+        borrowerOperations.adjustTrove{value: msg.value}(
+            collWithdrawal, debtChange, isDebtIncrease, upperHint, lowerHint
+        );
         _sweep();
     }
 

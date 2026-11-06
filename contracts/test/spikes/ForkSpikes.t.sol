@@ -81,9 +81,8 @@ contract ForkSpikes is Test {
         vm.createSelectFork("mezo_testnet");
         // The oracle behind PriceFeed is a Mezo precompile (0x7b7c...0015) that a local fork
         // cannot execute. Read the live price over RPC once, then pin fetchPrice to it.
-        bytes memory raw = vm.rpc(
-            "eth_call", string.concat('[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"latest"]')
-        );
+        bytes memory raw =
+            vm.rpc("eth_call", string.concat('[{"to":"', vm.toString(address(PF)), '","data":"0x0fdb11cf"},"latest"]'));
         price = abi.decode(raw, (uint256));
         require(price > 1_000e18, "implausible BTC price");
         vm.mockCall(address(PF), abi.encodeWithSelector(IPriceFeed.fetchPrice.selector), abi.encode(price));

@@ -197,14 +197,63 @@ contract FrontlineForkTest is ForkBase {
 
         // Measure the premium alone: over the same 30 days the absorber troves also accrued
         // MUSD interest, which at this oversupplied coverage (about 15x) outweighs the premium.
+        // Premiums vest into NAV over PREMIUM_VESTING, so nobody can deposit just before a
+        // collection and leave just after with premiums earned before they joined.
         uint256 navBefore = vault.totalAssets();
-        uint256 shareBefore = vault.sharePrice();
         vm.prank(stranger);
         uint256 paid = loan.collectPremium(address(0), address(0));
         assertEq(paid, due);
         assertEq(loan.premiumOwed(), 0);
-        assertApproxEqAbs(vault.totalAssets(), navBefore + paid, 1e15, "premium not added to NAV");
-        assertGt(vault.sharePrice(), shareBefore, "share price did not rise");
+        assertEq(vault.unvestedPremium(), paid, "premium not vesting");
+        assertApproxEqAbs(vault.totalAssets(), navBefore, 1e15, "premium counted before vesting");
+        vm.warp(block.timestamp + vault.PREMIUM_VESTING() / 2);
+        assertApproxEqAbs(vault.unvestedPremium(), paid / 2, 1e12, "not vesting linearly");
+        vm.warp(block.timestamp + vault.PREMIUM_VESTING());
+        assertEq(vault.unvestedPremium(), 0, "premium never fully vested");
+    }
+
+    function test_justInTimeDepositGetsNoPremiumEarnedBeforeIt() public {
+        ProtectedLoan loan = _setUpMarket();
+        vm.warp(block.timestamp + 30 days);
+        uint256 valueIn = (0.5 ether * price) / 1e18;
+        uint256 shares = _deposit(stranger, 0.5 ether);
+        vm.prank(stranger);
+        loan.collectPremium(address(0), address(0));
+
+        uint256 btcBefore = stranger.balance;
+        AbsorberVault.Hint[] memory hs = _hintsFor(2);
+        vm.prank(stranger);
+        (uint256 btcOut, uint256 musdOut) = vault.withdraw(shares, hs);
+        assertEq(stranger.balance - btcBefore, btcOut);
+        uint256 valueOut = (btcOut * price) / 1e18 + musdOut;
+        assertLe(valueOut, valueIn, "a just-in-time depositor captured earlier premium");
+    }
+
+    function test_premiumUsesTheLowerRateSoItCannotBePumpedBeforeCollection() public {
+        ProtectedLoan loan = _setUpMarket();
+        uint256 rateAtOpen = vault.premiumRate();
+        uint256 debt = _debt(address(loan));
+        vm.warp(block.timestamp + 30 days);
+
+        // A large new protected loan lowers coverage and raises the vault's rate.
+        vm.deal(stranger, 3 ether);
+        _openProtected(stranger, 2.2 ether, 100_000e18);
+        assertGt(vault.premiumRate(), rateAtOpen, "rate did not rise");
+
+        vm.prank(stranger);
+        uint256 paid = loan.collectPremium(address(0), address(0));
+        uint256 atOpenRate = (debt * rateAtOpen * 30) / (365 * 1e18);
+        assertApproxEqRel(paid, atOpenRate, 0.01e18, "elapsed period charged at the pumped rate");
+    }
+
+    function test_anyoneResyncsAProtectedLoanDebt() public {
+        ProtectedLoan loan = _setUpMarket();
+        vm.warp(block.timestamp + 90 days);
+        assertLt(factory.debtOf(address(loan)), _debt(address(loan)), "no interest accrued");
+        vm.prank(stranger);
+        loan.sync();
+        assertEq(factory.debtOf(address(loan)), _debt(address(loan)));
+        assertEq(factory.totalProtectedDebt(), _debt(address(loan)));
     }
 
     function test_onlyRegisteredLoansNotifyPremium() public {
@@ -316,6 +365,52 @@ contract FrontlineForkTest is ForkBase {
         _deployAt(0, address(vault).balance * 9 / 10, ABSORBER_ICR);
         assertEq(TM.getTroveStatus(t), STATUS_ACTIVE);
         assertEq(ST.getLast(), t);
+    }
+
+    function test_surplusAfterAFullRedemptionCountsInNav() public {
+        _setUpMarket();
+        address t = _trove(0);
+        uint256 lot = _debt(t) - TM.MUSD_GAS_COMPENSATION();
+        _fundRedeemer(lot);
+        _redeem(lot);
+        assertTrue(TM.getTroveStatus(t) != STATUS_ACTIVE, "absorber not closed by redemption");
+
+        uint256 navBefore = vault.totalAssets();
+        vm.prank(stranger);
+        vault.claimSurplus(0);
+        assertApproxEqRel(vault.totalAssets(), navBefore, 1e12, "unclaimed surplus missing from NAV");
+    }
+
+    function test_nobodySnipesTheSurplusByDepositingBeforeTheClaim() public {
+        _setUpMarket();
+        address t = _trove(0);
+        uint256 lot = _debt(t) - TM.MUSD_GAS_COMPENSATION();
+        _fundRedeemer(lot);
+        _redeem(lot);
+
+        uint256 valueIn = (0.5 ether * price) / 1e18;
+        uint256 shares = _deposit(stranger, 0.5 ether);
+        vm.prank(stranger);
+        vault.claimSurplus(0);
+        AbsorberVault.Hint[] memory hs = _hintsFor(2);
+        vm.prank(stranger);
+        (uint256 btcOut, uint256 musdOut) = vault.withdraw(shares, hs);
+        assertLe((btcOut * price) / 1e18 + musdOut, valueIn, "depositor took absorbers' surplus");
+    }
+
+    function test_withdrawalClaimsPendingSurplusFirst() public {
+        _setUpMarket();
+        address t = _trove(0);
+        uint256 lot = _debt(t) - TM.MUSD_GAS_COMPENSATION();
+        _fundRedeemer(lot);
+        _redeem(lot);
+
+        uint256 aliceShares = vault.balanceOf(alice);
+        uint256 navShare = (vault.totalAssets() * aliceShares) / vault.totalSupply();
+        AbsorberVault.Hint[] memory hs = _hintsFor(2);
+        vm.prank(alice);
+        (uint256 btcOut, uint256 musdOut) = vault.withdraw(aliceShares, hs);
+        assertApproxEqRel((btcOut * price) / 1e18 + musdOut, navShare, 1e12, "withdrawer lost the surplus share");
     }
 
     // ---------------------------------------------------------------- owner limits
