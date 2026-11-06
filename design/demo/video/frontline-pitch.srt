@@ -1,0 +1,116 @@
+1
+00:00:00,300 --> 00:00:03,613
+Picture a Mezo borrower at a safe ratio.
+
+2
+00:00:03,613 --> 00:00:08,998
+A redemption takes their BTC anyway, sold at one dollar per MUSD,
+
+3
+00:00:08,998 --> 00:00:12,063
+because their loan was first in line.
+
+4
+00:00:12,063 --> 00:00:16,288
+On Mezo mainnet, redemptions hit loans 1,310 times.
+
+5
+00:00:16,288 --> 00:00:17,696
+Liquidations, 28.
+
+6
+00:00:18,596 --> 00:00:21,504
+Frontline is a redemption market for MUSD.
+
+7
+00:00:21,504 --> 00:00:26,282
+Borrowers pay a small premium, and BTC holders called absorbers stand
+
+8
+00:00:26,282 --> 00:00:27,251
+first in line.
+
+9
+00:00:28,151 --> 00:00:32,173
+This is Mezo’s redemption line, read live from the chain.
+
+10
+00:00:32,173 --> 00:00:34,642
+Pick a size and see where it stops.
+
+11
+00:00:35,542 --> 00:00:38,811
+I lock 0.2 BTC and borrow 6,000 MUSD.
+
+12
+00:00:38,811 --> 00:00:44,288
+Before I sign, I see the absorber debt in front of me, and the
+
+13
+00:00:44,288 --> 00:00:44,994
+premium:
+
+14
+00:00:44,994 --> 00:00:46,319
+half a percent.
+
+15
+00:00:47,219 --> 00:00:54,547
+Someone redeems 5,000 MUSD, here on a local fork of Mezo testnet with
+
+16
+00:00:54,547 --> 00:00:56,565
+the real contracts.
+
+17
+00:00:56,565 --> 00:01:01,451
+The absorber loan drops from 30,145 to 25,145.
+
+18
+00:01:01,451 --> 00:01:03,787
+My loan does not move.
+
+19
+00:01:04,687 --> 00:01:06,775
+Absorbers earn the premium.
+
+20
+00:01:06,775 --> 00:01:11,879
+A redemption swaps part of their BTC for MUSD at the oracle price,
+
+21
+00:01:11,879 --> 00:01:13,735
+with no loss in dollars.
+
+22
+00:01:14,635 --> 00:01:16,903
+Frontline does not change MUSD.
+
+23
+00:01:16,903 --> 00:01:21,804
+Our contracts own real troves and keep absorber loans at the front.
+
+24
+00:01:21,804 --> 00:01:25,682
+Thirty-six tests run against the real MUSD contracts;
+
+25
+00:01:25,682 --> 00:01:29,412
+a self-review fixed one high and two medium issues.
+
+26
+00:01:29,412 --> 00:01:31,315
+Wallets use Mezo Passport.
+
+27
+00:01:32,215 --> 00:01:32,598
+Next:
+
+28
+00:01:32,598 --> 00:01:36,820
+outside users on testnet, then a capped mainnet launch.
+
+29
+00:01:36,820 --> 00:01:41,580
+So redemptions take BTC only from those who chose to be first.
+

@@ -10,7 +10,7 @@ Target length **1:48** (the limit is 2:00; judges penalise anything over 2:15). 
 | 0:19 to 0:29 | **Solution.** Home page hero and the orange and blue line bar. | Frontline is a redemption market for MUSD. Borrowers pay a small premium, and BTC holders called absorbers stand first in line. |
 | 0:29 to 0:38 | **Demo 1, the line.** Line page: click the 5,000 MUSD size; the preview stops at Absorber loan 1. | This is Mezo’s redemption line, read live from the chain. Pick a size and see where it stops. |
 | 0:38 to 0:51 | **Demo 2, borrow.** Borrow page: type 0.2 BTC and 6,000 MUSD; zoom on "MUSD redeemed before your loan is touched" and the premium row. | I lock 0.2 BTC and borrow 6,000 MUSD. Before I sign, I see the absorber debt in front of me, and the premium: half a percent. |
-| 0:51 to 1:08 | **Demo 3, the hero.** Fork clip: Redeem Lab preview, then confirmed. Keep the "Local fork of Mezo testnet" label in view. Cut to My loan, unchanged. | Someone redeems 5,000 MUSD, here on a local fork of Mezo testnet with the real contracts. The absorber loan drops from 30,347 to 25,347. My loan does not move. |
+| 0:51 to 1:08 | **Demo 3, the hero.** Fork clip: Redeem Lab preview, then confirmed. Keep the "Local fork of Mezo testnet" label in view. Cut to My loan, unchanged. | Someone redeems 5,000 MUSD, here on a local fork of Mezo testnet with the real contracts. The absorber loan drops from 30,145 to 25,145. My loan does not move. |
 | 1:08 to 1:19 | **Demo 4, absorb.** Absorb page: the quote for a 0.5 BTC deposit, then the Proof page transactions. | Absorbers earn the premium. A redemption swaps part of their BTC for MUSD at the oracle price, with no loss in dollars. |
 | 1:19 to 1:37 | **How it works.** Deck slide 8 (architecture), then slide 10 (built and tested). | Frontline does not change MUSD. Our contracts own real troves and keep absorber loans at the front. Thirty-six tests run against the real MUSD contracts; a self-review fixed one high and two medium issues. Wallets use Mezo Passport. |
 | 1:37 to 1:48 | **Next.** Deck slide 11 (milestones), then the cover with the app URL. | Next: outside users on testnet, then a capped mainnet launch. So redemptions take BTC only from those who chose to be first. |
@@ -34,7 +34,7 @@ Record each shot as its own clip, then cut them together. All at 1920x1080, brow
 
 - Quiet room, phone or headset mic 15 cm from your mouth, one take per table row.
 - Read slightly slower than feels natural; each row is timed with a little slack.
-- Numbers to say as written: "thirty thousand three hundred forty-seven", "twenty-five thousand three hundred forty-seven".
+- Numbers to say as written: "thirty thousand one hundred forty-five", "twenty-five thousand one hundred forty-five".
 - Export the final video at 1080p, upload to YouTube as unlisted, and test the link in a private window.
 
 ## What not to change
