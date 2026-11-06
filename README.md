@@ -4,6 +4,8 @@ A redemption market for MUSD on Mezo. Borrowers stop being redeemed by paying BT
 
 **Status: in progress for the Mezo Buildathon, Wave 2 (deadline 13 Nov 2026).** This README grows with the build; nothing below is claimed as working until it is linked to a transaction or a test.
 
+**Try it on Mezo testnet:** https://frontline-mezo.vercel.app, with a 10-minute guide in [docs/testers.md](docs/testers.md). Feedback goes in a [tester feedback issue](https://github.com/whatsgood200/frontline-mezo/issues/new?template=tester-feedback.yml).
+
 ## The problem, in Mezo's own numbers (mainnet, read 5 Nov 2026)
 
 - Redemptions hit MUSD loans **1,310** times; liquidations **28** times.

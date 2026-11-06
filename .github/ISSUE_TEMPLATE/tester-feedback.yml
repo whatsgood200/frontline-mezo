@@ -1,0 +1,51 @@
+name: Tester feedback
+description: Tell us how trying Frontline on Mezo testnet went.
+title: "Tester feedback: "
+labels: ["tester-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Frontline. The steps are in [docs/testers.md](https://github.com/whatsgood200/frontline-mezo/blob/main/docs/testers.md).
+  - type: input
+    id: wallet
+    attributes:
+      label: Wallet address you used
+      description: Public on chain. We list testers on the Proof page unless you tick the box below.
+      placeholder: 0x...
+    validations:
+      required: true
+  - type: checkboxes
+    id: listing
+    attributes:
+      label: Listing
+      options:
+        - label: Please do not list my address on the Proof page.
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: What you tried
+      options:
+        - label: Deposited as an absorber
+        - label: Opened a protected loan
+        - label: Repaid, added BTC or withdrew
+        - label: Looked at Redeem Lab and Proof
+  - type: textarea
+    id: redemptions
+    attributes:
+      label: Had you heard of MUSD redemptions? Would you pay a premium to avoid them, and how much?
+    validations:
+      required: true
+  - type: textarea
+    id: absorber
+    attributes:
+      label: Would you deposit BTC as an absorber for a yield? What yield would make it worth it?
+  - type: textarea
+    id: problems
+    attributes:
+      label: What confused you, or what broke?
+  - type: input
+    id: setup
+    attributes:
+      label: Wallet and device
+      placeholder: MetaMask on Chrome desktop, Unisat on Android, ...
