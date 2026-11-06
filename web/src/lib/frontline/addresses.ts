@@ -21,12 +21,15 @@ export const MUSD_ADDRESSES = {
   },
 } as const;
 
-/** Frontline contracts on Mezo testnet, deployed 2026-11-05 at block 16,591,000 (contracts/deployments/testnet.json). */
+/**
+ * Frontline contracts on Mezo testnet, redeployed 2026-11-06 at block 16,608,874 with the
+ * self-review fixes (docs/security.md; record in contracts/deployments/testnet.json).
+ */
 export const FRONTLINE_ADDRESSES = {
-  absorberVault: "0x45805145536767435185c991097D8193A8518581",
-  loanFactory: "0xd7F44463230e95f6b490Da29b8bc475De25C98AB",
-  lens: "0x165b7Da20d3688eeF6b6E3D8227e43492Ea38F18",
-  loanImplementation: "0x4F4704404D073d8f4d60C609269845186802cffC",
-  absorberTroves: ["0xec6E0a1f1acEEf06E0F75a82b0683EC0298e3784", "0x4EE7c5C31176B0B6E09B3d5E0dee005c417B1872"],
-  deployBlock: 16_591_000,
+  absorberVault: "0x0CD16Bb4d327e2bA0947deE279073cEc2E0DA265",
+  loanFactory: "0xD8f888161FAcB6529e9389B2b1b9E3Df2636957e",
+  lens: "0x943d4252c759249D24D375E855B0a3caf13DB874",
+  loanImplementation: "0x73E6b5965779e1823c607458F9d79ac8Cf8eE251",
+  absorberTroves: ["0x917ee2bdD16621A8aD2797D836B0d2544e6dC4Ef", "0x1d174559Be0a9E968bfA17d088d21930dEA59e15"],
+  deployBlock: 16_608_860,
 } as const;

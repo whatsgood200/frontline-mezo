@@ -24,7 +24,7 @@ const PROVEN = [
   { ok: true, text: "A contract can own and manage a trove on Mezo testnet: open with hints at about 526k gas, adjust, close (fork test S1)." },
   { ok: true, text: "A real redemption hits an absorber loan and leaves a protected loan's collateral and debt unchanged (fork test S2)." },
   { ok: true, text: "After a 3% BTC drop, repaying from held MUSD lifts an absorber loan from 111% back to 125% (fork test S5)." },
-  { ok: true, text: "Frontline is deployed on Mezo testnet (block 16,591,000); the vault, factory and lens are source-verified on the explorer, and the loan template's bytecode matches the build exactly." },
+  { ok: true, text: "Frontline is deployed on Mezo testnet (block 16,608,874); the vault, factory and lens are source-verified on the explorer, and the loan template's bytecode matches the build exactly." },
   { ok: true, text: "36 contract tests pass, including 30 end-to-end fork tests against the real MUSD contracts (deposit, protected loans, redemption, premiums, withdrawals, price shocks)." },
   { ok: false, text: "Outside users: none yet. Wallet addresses will be listed here with explorer links." },
   { ok: false, text: "Audit: none. Unaudited testnet software." },

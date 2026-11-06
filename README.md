@@ -31,14 +31,14 @@ Plan: [docs/plan.md](docs/plan.md). Architecture: [docs/architecture.md](docs/ar
 
 ![Frontline hero path on a local fork of Mezo testnet](design/demo/fork-clip/frontline-fork-hero.gif)
 
-This clip is **not** live testnet. It runs the production web app, built in a fork mode, against an anvil fork of Mezo testnet (block 16,591,390) that holds the real MUSD and Frontline contracts. Every step is a transaction sent from the app's own wallet flow: open a protected loan (0.2 BTC, 6,000 MUSD), redeem 5,000 MUSD in Redeem Lab, see Absorber loan 1 drop from 30,347 to 25,347 MUSD while the protected loan keeps its 0.2 BTC and 6,206 MUSD of debt. MP4: [frontline-fork-hero.mp4](design/demo/fork-clip/frontline-fork-hero.mp4).
+This clip is **not** live testnet. It was recorded on 5 Nov against the first deployment, before the 6 Nov security fixes, which do not change this path. It runs the production web app, built in a fork mode, against an anvil fork of Mezo testnet (block 16,591,390) that holds the real MUSD and Frontline contracts. Every step is a transaction sent from the app's own wallet flow: open a protected loan (0.2 BTC, 6,000 MUSD), redeem 5,000 MUSD in Redeem Lab, see Absorber loan 1 drop from 30,347 to 25,347 MUSD while the protected loan keeps its 0.2 BTC and 6,206 MUSD of debt. MP4: [frontline-fork-hero.mp4](design/demo/fork-clip/frontline-fork-hero.mp4).
 
 Why a fork: on 5 Nov testnet BTC fell about 4.5%, and third-party loans now sit at 110.5 to 112% ratio, under our 112% band. A live redemption would have to close other teams' loans first, which Redeem Lab refuses to do. The fork setup (`web/scripts/fork-setup.ts`) moves those loans back by adding collateral on the fork only, at testnet's live BTC price, then deposits and deploys one absorber loan. The live testnet run follows when the front of the line clears.
 
 Reproduce (Git Bash, from `web/`):
 
 ```bash
-anvil --fork-url https://rpc.test.mezo.org --fork-block-number 16591390 --chain-id 31611 --port 8546
+anvil --fork-url https://rpc.test.mezo.org --fork-block-number 16610000 --chain-id 31611 --port 8546
 pnpm fork:setup
 NEXT_PUBLIC_ADAPTER=chain NEXT_PUBLIC_NETWORK=testnet NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8546 NEXT_PUBLIC_FORK_DEMO=1 pnpm build && pnpm start -p 3125
 ```
@@ -49,13 +49,13 @@ Fork mode refuses to run outside local development (`web/src/lib/env.ts`), label
 
 | Contract | Address | Source |
 |---|---|---|
-| AbsorberVault | [0x4580…8581](https://explorer.test.mezo.org/address/0x45805145536767435185c991097D8193A8518581) | verified |
-| ProtectedLoanFactory | [0xd7F4…98AB](https://explorer.test.mezo.org/address/0xd7F44463230e95f6b490Da29b8bc475De25C98AB) | verified |
-| FrontlineLens | [0x165b…8F18](https://explorer.test.mezo.org/address/0x165b7Da20d3688eeF6b6E3D8227e43492Ea38F18) | verified |
-| ProtectedLoan (template, created by the factory) | [0x4F47…cffC](https://explorer.test.mezo.org/address/0x4F4704404D073d8f4d60C609269845186802cffC) | bytecode matches `contracts/out` exactly |
-| AbsorberTrove 0 and 1 (created by the vault) | [0xec6E…3784](https://explorer.test.mezo.org/address/0xec6E0a1f1acEEf06E0F75a82b0683EC0298e3784), [0x4EE7…1872](https://explorer.test.mezo.org/address/0x4EE7c5C31176B0B6E09B3d5E0dee005c417B1872) | created by the verified vault |
+| AbsorberVault | [0x0CD1…A265](https://explorer.test.mezo.org/address/0x0CD16Bb4d327e2bA0947deE279073cEc2E0DA265) | verified |
+| ProtectedLoanFactory | [0xD8f8…957e](https://explorer.test.mezo.org/address/0xD8f888161FAcB6529e9389B2b1b9E3Df2636957e) | verified |
+| FrontlineLens | [0x943d…B874](https://explorer.test.mezo.org/address/0x943d4252c759249D24D375E855B0a3caf13DB874) | verified |
+| ProtectedLoan (template, created by the factory) | [0x73E6…E251](https://explorer.test.mezo.org/address/0x73E6b5965779e1823c607458F9d79ac8Cf8eE251) | bytecode matches `contracts/out` exactly |
+| AbsorberTrove 0 and 1 (created by the vault) | [0x917e…C4Ef](https://explorer.test.mezo.org/address/0x917ee2bdD16621A8aD2797D836B0d2544e6dC4Ef), [0x1d17…9e15](https://explorer.test.mezo.org/address/0x1d174559Be0a9E968bfA17d088d21930dEA59e15) | created by the verified vault |
 
-Built on Mezo's MUSD contracts: TroveManager `0xE47c…6bb0`, SortedTroves `0x722E…68fA`, BorrowerOperations `0xCdF7…bEE5`, PriceFeed `0x86bC…9366`. Band 112 to 115%. Deploy record: `contracts/deployments/testnet.json` and `contracts/broadcast/`.
+Redeployed 6 Nov at block 16,608,874 with the self-review fixes; the first deployment (5 Nov, block 16,591,000) is retired and never held deposits. Built on Mezo's MUSD contracts: TroveManager `0xE47c…6bb0`, SortedTroves `0x722E…68fA`, BorrowerOperations `0xCdF7…bEE5`, PriceFeed `0x86bC…9366`. Band 112 to 115%. Deploy record: `contracts/deployments/testnet.json` and `contracts/broadcast/`.
 
 ## Repository
 
