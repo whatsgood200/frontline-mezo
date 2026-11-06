@@ -11,6 +11,7 @@ import {
   troveManagerAbi,
 } from "./musd-abi";
 import { musd } from "@/lib/format";
+import { blockRanges } from "./log-ranges";
 import * as math from "./math";
 import { FRONTLINE, MUSD } from "./params";
 import {
@@ -61,6 +62,17 @@ async function guard<T>(what: string, run: () => Promise<T>): Promise<T> {
     console.error(`chain: ${what} failed`, err);
     throw new FrontlineError(`Could not read ${what} from Mezo testnet. Try again in a minute.`, "RPC_UNAVAILABLE");
   }
+}
+
+// ------------------------------------------------------------------ events
+
+const LOG_SPAN = 9_000n;
+
+/** Runs an event query over every block since Frontline's deploy, in windows the RPC accepts. */
+async function sinceDeploy<T>(c: PublicClient, query: (fromBlock: bigint, toBlock: bigint) => Promise<T[]>): Promise<T[]> {
+  const latest = await c.getBlockNumber();
+  const windows = blockRanges(BigInt(F.deployBlock), latest, LOG_SPAN);
+  return (await Promise.all(windows.map(([from, to]) => query(from, to)))).flat();
 }
 
 // ------------------------------------------------------------------ reads
@@ -156,7 +168,7 @@ export function readLoan(c: PublicClient, owner: Address): Promise<ProtectedLoan
       c.readContract({ address: F.absorberVault, abi: absorberVaultAbi, functionName: "premiumRate" }),
       c.readContract({ address: loan, abi: protectedLoanAbi, functionName: "premiumDue" }),
       c.readContract({ address: F.lens, abi: frontlineLensAbi, functionName: "bufferAhead", args: [loan] }),
-      c.getContractEvents({ address: F.loanFactory, abi: protectedLoanFactoryAbi, eventName: "LoanOpened", args: { owner }, fromBlock: BigInt(F.deployBlock) }),
+      sinceDeploy(c, (fromBlock, toBlock) => c.getContractEvents({ address: F.loanFactory, abi: protectedLoanFactoryAbi, eventName: "LoanOpened", args: { owner }, fromBlock, toBlock })),
     ]);
     const [coll, principal, interest] = entire;
     const active = status === STATUS_ACTIVE;
@@ -195,8 +207,8 @@ export function readAbsorber(c: PublicClient, owner: Address): Promise<AbsorberP
       c.readContract({ address: F.absorberVault, abi: absorberVaultAbi, functionName: "totalSupply" }),
       c.readContract({ address: F.absorberVault, abi: absorberVaultAbi, functionName: "stats" }),
       c.readContract({ address: F.absorberVault, abi: absorberVaultAbi, functionName: "sharePrice" }),
-      c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, eventName: "Deposited", args: { account: owner }, fromBlock: BigInt(F.deployBlock) }),
-      c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, eventName: "PremiumReceived", fromBlock: BigInt(F.deployBlock) }),
+      sinceDeploy(c, (fromBlock, toBlock) => c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, eventName: "Deposited", args: { account: owner }, fromBlock, toBlock })),
+      sinceDeploy(c, (fromBlock, toBlock) => c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, eventName: "PremiumReceived", fromBlock, toBlock })),
       readAbsorberRedemptions(c, Infinity),
     ]);
     const share = num(shares, 21) / Math.max(num(supply, 21), 1e-18);
@@ -226,13 +238,16 @@ export function readAbsorber(c: PublicClient, owner: Address): Promise<AbsorberP
  * signature, and operation code 2 means "adjust" in one and "redeem" in the other.
  */
 async function troveUpdates(c: PublicClient) {
-  const logs = await c.getContractEvents({
-    address: [M.troveManager, M.borrowerOperations],
-    abi: troveManagerAbi,
-    eventName: "TroveUpdated",
-    args: { _borrower: [...F.absorberTroves] },
-    fromBlock: BigInt(F.deployBlock),
-  });
+  const logs = await sinceDeploy(c, (fromBlock, toBlock) =>
+    c.getContractEvents({
+      address: [M.troveManager, M.borrowerOperations],
+      abi: troveManagerAbi,
+      eventName: "TroveUpdated",
+      args: { _borrower: [...F.absorberTroves] },
+      fromBlock,
+      toBlock,
+    }),
+  );
   return logs.sort((a, b) => (a.blockNumber === b.blockNumber ? a.logIndex - b.logIndex : Number(a.blockNumber - b.blockNumber)));
 }
 
@@ -267,10 +282,9 @@ async function readAbsorberRedemptions(c: PublicClient, windowSeconds: number): 
 
 export function readActivity(c: PublicClient): Promise<ActivityItem[]> {
   return guard("Frontline activity", async () => {
-    const from = BigInt(F.deployBlock);
     const [vaultLogs, factoryLogs, troveLogs] = await Promise.all([
-      c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, fromBlock: from }),
-      c.getContractEvents({ address: F.loanFactory, abi: protectedLoanFactoryAbi, eventName: "LoanOpened", fromBlock: from }),
+      sinceDeploy(c, (fromBlock, toBlock) => c.getContractEvents({ address: F.absorberVault, abi: absorberVaultAbi, fromBlock, toBlock })),
+      sinceDeploy(c, (fromBlock, toBlock) => c.getContractEvents({ address: F.loanFactory, abi: protectedLoanFactoryAbi, eventName: "LoanOpened", fromBlock, toBlock })),
       troveUpdates(c),
     ]);
     type Raw = { hash: Hex; block: bigint; index: number; kind: ActivityItem["kind"]; summary: string; account: Address };
