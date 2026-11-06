@@ -90,7 +90,13 @@ export const chainAdapter: FrontlineAdapter = {
   getVault: () => calls.readVault(client()),
   quoteAbsorb: async (depositBtc) => {
     const [v, price] = await Promise.all([calls.readVault(client()), calls.readPrice(client())]);
-    return math.quoteAbsorb(depositBtc, { btcPrice: Number(price) / 1e18, absorberDebt: v.absorberDebt, protectedDebt: v.protectedDebt, sharePrice: v.sharePrice });
+    return math.quoteAbsorb(depositBtc, {
+      btcPrice: Number(price) / 1e18,
+      absorberDebt: v.absorberDebt,
+      protectedDebt: v.protectedDebt,
+      sharePrice: v.sharePrice,
+      absorberRatio: (v.bandLow + v.bandHigh) / 2,
+    });
   },
   deposit: (owner, btc, onStatus) => execute(owner, async () => calls.buildDeposit(btc), onStatus),
   getAbsorber: (owner) => calls.readAbsorber(client(), owner),

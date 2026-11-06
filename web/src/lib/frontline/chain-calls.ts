@@ -128,7 +128,7 @@ export function readVault(c: PublicClient): Promise<VaultStats> {
       coverage: cov,
       premiumRate: absorberDebt > 0 ? num(s.premiumRate) : 0,
       // Shown even when negative: an oversupplied layer earns less than it pays (decision 008).
-      absorberYieldOnBtc: absorberDebt > 0 && protectedDebt > 0 ? math.absorberYieldOnBtc(cov) : 0,
+      absorberYieldOnBtc: absorberDebt > 0 && protectedDebt > 0 ? math.absorberYieldOnBtc(cov, (num(bandLow) + num(bandHigh)) / 2) : 0,
       navMusd: num(s.totalAssets),
       btcHeld: num(s.idleBtc + s.troveCollateral),
       musdHeld: num(s.musdHeld),

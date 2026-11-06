@@ -20,7 +20,7 @@ export const FRONTLINE = {
   absorberBandLow: 1.12,
   absorberBandHigh: 1.15,
   absorberFloor: 1.115,
-  /** Ratio the absorber quote assumes when sizing debt from deposited BTC. */
+  /** Default ratio for absorber quotes: the planned mainnet band. The live app uses the vault's band midpoint instead. */
   absorberTargetRatio: 1.25,
   /** Protected loans must stay at or above this ratio. */
   protectionFloor: 1.5,

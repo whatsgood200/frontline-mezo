@@ -23,9 +23,10 @@ export function coverage(absorberDebt: number, protectedDebt: number): number {
 }
 
 /** Absorbers' net yield on their BTC: premium per MUSD of absorber debt, less Mezo interest, over the target ratio. */
-export function absorberYieldOnBtc(cov: number): number {
+/** Absorber yield on deposited BTC when absorber loans sit at `ratio` (the vault's band midpoint live). */
+export function absorberYieldOnBtc(cov: number, ratio: number = FRONTLINE.absorberTargetRatio): number {
   if (!Number.isFinite(cov)) return 0;
-  return (premiumRate(cov) / cov - MUSD.interestRate) / FRONTLINE.absorberTargetRatio;
+  return (premiumRate(cov) / cov - MUSD.interestRate) / ratio;
 }
 
 export function totalDebtFor(borrowMusd: number): { fee: number; total: number } {
@@ -110,13 +111,15 @@ export function quoteBorrow(
 
 export function quoteAbsorb(
   depositBtc: number,
-  ctx: { btcPrice: number; absorberDebt: number; protectedDebt: number; sharePrice: number },
+  ctx: { btcPrice: number; absorberDebt: number; protectedDebt: number; sharePrice: number; absorberRatio?: number },
 ): AbsorbQuote {
-  const debtBacked = (depositBtc * ctx.btcPrice) / FRONTLINE.absorberTargetRatio;
+  const ratio = ctx.absorberRatio ?? FRONTLINE.absorberTargetRatio;
+  const debtBacked = (depositBtc * ctx.btcPrice) / ratio;
   const covAfter = coverage(ctx.absorberDebt + debtBacked, ctx.protectedDebt);
-  const netYield = absorberYieldOnBtc(covAfter);
+  const netYield = absorberYieldOnBtc(covAfter, ratio);
   return {
     depositBtc,
+    absorberRatio: ratio,
     debtBacked,
     coverageAfter: covAfter,
     premiumRateAfter: premiumRate(covAfter),

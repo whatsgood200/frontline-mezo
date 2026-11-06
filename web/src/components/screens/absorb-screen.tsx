@@ -94,7 +94,7 @@ export function AbsorbScreen() {
             valid ? <div className="flex flex-col gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div> : <p className="text-sm text-muted">Enter how much BTC to deposit.</p>
           ) : (
             <div className="flex flex-col">
-              <Row label="Absorber debt it backs, at 125%" value={`${musd(q.debtBacked)} MUSD`} />
+              <Row label={`Absorber debt it backs, at ${pct(q.absorberRatio)}`} value={`${musd(q.debtBacked)} MUSD`} />
               <Row label="Coverage after your deposit" value={multiple(q.coverageAfter)} hint="More absorbers means more cover and a lower premium" />
               <Row label="Premium borrowers pay after it" value={`${pct(q.premiumRateAfter, 2)} a year`} />
               <Row label="Less Mezo interest on absorber loans" value="1.00% a year" />

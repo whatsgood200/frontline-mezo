@@ -124,6 +124,8 @@ export interface VaultStats {
 
 export interface AbsorbQuote {
   depositBtc: number;
+  /** Collateral ratio the absorber loans sit at, which sizes the debt this deposit backs. */
+  absorberRatio: number;
   debtBacked: number;
   coverageAfter: number;
   premiumRateAfter: number;

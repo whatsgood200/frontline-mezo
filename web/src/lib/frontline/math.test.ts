@@ -108,6 +108,18 @@ describe("absorb quote", () => {
   });
 });
 
+describe("absorber ratio", () => {
+  it("sizes absorber debt and yield at the ratio the vault really uses", () => {
+    const ctx = { btcPrice: PRICE, absorberDebt: 42_180, protectedDebt: 120_500, sharePrice: 1 };
+    const testnet = quoteAbsorb(0.5, { ...ctx, absorberRatio: 1.135 });
+    expect(testnet.absorberRatio).toBe(1.135);
+    expect(testnet.debtBacked).toBeCloseTo((0.5 * PRICE) / 1.135, 6);
+    expect(testnet.netYieldOnBtc).toBeCloseTo(absorberYieldOnBtc(testnet.coverageAfter, 1.135), 12);
+    // Lower ratio: more debt per BTC, so more yield on the same BTC.
+    expect(absorberYieldOnBtc(0.35, 1.135)).toBeGreaterThan(absorberYieldOnBtc(0.35));
+  });
+});
+
 describe("buffer", () => {
   it("is zero for a loan at the very front", () => {
     expect(bufferAhead(seedLine(), 1.0).total).toBe(0);
