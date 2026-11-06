@@ -1,0 +1,120 @@
+1
+00:00:00,000 --> 00:00:04,108
+Picture a Mezo borrower at a safe ratio.
+
+2
+00:00:04,108 --> 00:00:11,811
+A redemption takes their BTC anyway, sold
+at one dollar per MUSD, because their loan
+
+3
+00:00:11,811 --> 00:00:13,865
+was first in line.
+
+4
+00:00:13,865 --> 00:00:17,973
+On Mezo mainnet, redemptions
+hit loans 1,310 times.
+
+5
+00:00:17,973 --> 00:00:19,000
+Liquidations, 28.
+
+6
+00:00:19,000 --> 00:00:22,333
+Frontline is a redemption market for MUSD.
+
+7
+00:00:22,333 --> 00:00:29,000
+Borrowers pay a small premium, and BTC
+holders called absorbers stand first in line.
+
+8
+00:00:29,000 --> 00:00:34,000
+This is Mezo’s redemption line,
+read live from the chain.
+
+9
+00:00:34,000 --> 00:00:38,000
+Pick a size and see where it stops.
+
+10
+00:00:38,000 --> 00:00:42,000
+I lock 0.2 BTC and borrow 6,000 MUSD.
+
+11
+00:00:42,000 --> 00:00:49,500
+Before I sign, I see the absorber
+debt in front of me, and the premium:
+
+12
+00:00:49,500 --> 00:00:51,000
+half a percent.
+
+13
+00:00:51,000 --> 00:00:59,793
+Someone redeems 5,000 MUSD, here on a
+local fork of Mezo testnet with the real
+
+14
+00:00:59,793 --> 00:01:00,379
+contracts.
+
+15
+00:01:00,379 --> 00:01:05,069
+The absorber loan drops
+from 30,347 to 25,347.
+
+16
+00:01:05,069 --> 00:01:08,000
+My loan does not move.
+
+17
+00:01:08,000 --> 00:01:10,000
+Absorbers earn the premium.
+
+18
+00:01:10,000 --> 00:01:18,500
+A redemption swaps part of their BTC for
+MUSD at the oracle price, with no loss in
+
+19
+00:01:18,500 --> 00:01:19,000
+dollars.
+
+20
+00:01:19,000 --> 00:01:21,368
+Frontline does not change MUSD.
+
+21
+00:01:21,368 --> 00:01:27,053
+Our contracts own real troves and
+keep absorber loans at the front.
+
+22
+00:01:27,053 --> 00:01:30,842
+Thirty-six tests run against
+the real MUSD contracts;
+
+23
+00:01:30,842 --> 00:01:35,105
+a self-review fixed one
+high and two medium issues.
+
+24
+00:01:35,105 --> 00:01:37,000
+Wallets use Mezo Passport.
+
+25
+00:01:37,000 --> 00:01:37,500
+Next:
+
+26
+00:01:37,500 --> 00:01:42,000
+outside users on testnet,
+then a capped mainnet launch.
+
+27
+00:01:42,000 --> 00:01:48,000
+So redemptions take BTC only from
+those who chose to be first.
